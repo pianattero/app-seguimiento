@@ -2,7 +2,7 @@ import type { DayString } from './dates'
 import type { MealSlot } from './recipes'
 
 export type Sex = 'female' | 'male'
-export type SessionKind = 'strength' | 'running'
+export type SessionKind = 'strength' | 'running' | 'dance'
 export type SessionStatus = 'planned' | 'done' | 'skipped'
 
 export interface PersonData {
@@ -76,7 +76,7 @@ export interface ImportedWorkout {
   maxHeartRate?: number
 }
 
-export const kindLabel: Record<SessionKind, string> = { strength: 'Fuerza', running: 'Running' }
+export const kindLabel: Record<SessionKind, string> = { strength: 'Fuerza', running: 'Running', dance: 'Zumba' }
 export const statusLabel: Record<SessionStatus, string> = { planned: 'Pendiente', done: 'Hecho', skipped: 'Saltado' }
 
 export function sessionTitle(s: Session): string {
@@ -98,6 +98,12 @@ export interface Meal {
 /** Primer día de una regla. */
 export interface PeriodStart {
   start: DayString
+}
+
+/** Pesaje (normalmente los domingos). */
+export interface WeightEntry {
+  day: DayString
+  kg: number
 }
 
 export interface ShoppingCheck {

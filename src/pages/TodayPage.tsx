@@ -2,12 +2,13 @@ import { Icon } from '../components/Icon'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Card, Page, Row, SessionRow } from '../components/ui'
 import { phaseInfo } from '../lib/cycle'
-import { dayTitle, startOfWeek, today } from '../lib/dates'
+import { dayTitle, startOfWeek, today, weekdayIndex } from '../lib/dates'
 import { planForDay } from '../lib/dayPlan'
 import { db } from '../lib/db'
 import { formatNumber } from '../lib/format'
 import { totals } from '../lib/meals'
 import { mealSlots } from '../lib/recipes'
+import { needsWeighIn } from '../lib/weight'
 import { MealRow } from './MealsPage'
 
 export function TodayPage() {
@@ -16,6 +17,7 @@ export function TodayPage() {
   const sessions = useLiveQuery(() => db.sessions.where('day').equals(day).toArray(), [day])
   const meals = useLiveQuery(() => db.meals.where('day').equals(day).toArray(), [day]) ?? []
   const periods = useLiveQuery(() => db.periods.toArray())
+  const weights = useLiveQuery(() => db.weights.toArray())
   const setCounts = useLiveQuery(async () => {
     const counts: Record<number, number> = {}
     for (const s of sessions ?? []) counts[s.id!] = await db.sets.where('sessionId').equals(s.id!).count()
@@ -33,6 +35,18 @@ export function TodayPage() {
             <span className="row-main">
               <strong>Completa tus datos</strong>
               <small className="muted">Peso, altura y edad, para calcular bien tus calorías ›</small>
+            </span>
+          </a>
+        </Card>
+      )}
+
+      {weights && needsWeighIn(weights, day) && (
+        <Card>
+          <a className="row row-link highlight" href="#/peso">
+            <Icon name="scale" className="row-icon" />
+            <span className="row-main">
+              <strong>{weekdayIndex(day) === 6 ? 'Hoy toca pesarse' : 'Te falta el pesaje del domingo'}</strong>
+              <small>Apunta tu peso para ver tu progreso ›</small>
             </span>
           </a>
         </Card>

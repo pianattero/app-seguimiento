@@ -20,16 +20,18 @@ import { SettingsPage } from './pages/SettingsPage'
 import { ShortcutPage } from './pages/ShortcutPage'
 import { TodayPage } from './pages/TodayPage'
 import { WeekPage } from './pages/WeekPage'
+import { WeightPage } from './pages/WeightPage'
 
 const tabs = [
   { key: 'hoy', label: 'Hoy' },
   { key: 'semana', label: 'Entrenos' },
   { key: 'comidas', label: 'Comidas' },
   { key: 'ciclo', label: 'Ciclo' },
+  { key: 'peso', label: 'Peso' },
   { key: 'ajustes', label: 'Ajustes' },
 ]
 
-const tabIcons: Record<string, IconName> = { hoy: 'sun', semana: 'dumbbell', comidas: 'bowl', ciclo: 'moon', ajustes: 'sliders' }
+const tabIcons: Record<string, IconName> = { hoy: 'sun', semana: 'dumbbell', comidas: 'bowl', ciclo: 'moon', peso: 'scale', ajustes: 'sliders' }
 
 const tabFor: Record<string, string> = { sesion: 'semana', importar: 'semana', atajo: 'ajustes', comida: 'comidas', receta: 'comidas', compra: 'comidas', 'receta-nueva': 'comidas', preferencias: 'comidas' }
 
@@ -79,6 +81,9 @@ export default function App() {
       break
     case 'ciclo':
       page = <CyclePage month={params.get('m') ?? undefined} />
+      break
+    case 'peso':
+      page = <WeightPage />
       break
     case 'ajustes':
       page = <SettingsPage />

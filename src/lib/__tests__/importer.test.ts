@@ -11,6 +11,8 @@ describe('importación desde el Atajo', () => {
   it('entiende el tipo de entreno en español o como lo nombra Salud', () => {
     expect(parseKind('Correr')).toBe('running')
     expect(parseKind('Running')).toBe('running')
+    expect(parseKind('Baile')).toBe('dance')
+    expect(parseKind('Dance')).toBe('dance')
     expect(parseKind('Entrenamiento de fuerza tradicional')).toBe('strength')
     expect(parseKind('Yoga')).toBeUndefined()
   })

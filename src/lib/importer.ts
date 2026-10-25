@@ -26,6 +26,7 @@ export function parseQuantity(text: string | null | undefined): { value: number;
 
 export function parseKind(text: string | null): SessionKind | undefined {
   const t = (text ?? '').toLowerCase()
+  if (/baile|dance|zumba/.test(t)) return 'dance'
   if (/run|corr|carrera|trot/.test(t)) return 'running'
   if (/fuerza|strength|pesa|tradicional|funcional|gym|gimnasio/.test(t)) return 'strength'
   return undefined

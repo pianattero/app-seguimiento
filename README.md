@@ -5,10 +5,11 @@ App web para el móvil que sigue los entrenos de la semana (fuerza lunes y miér
 ## Fase 1 (esta versión)
 
 - **Hoy**: el entreno del día y el objetivo de calorías y macros, que cambia según el entreno.
-- **Entrenos**: calendario del mes con la fuerza en amarillo y el running en rosa (relleno si está hecho, claro si está pendiente). Al tocar un día se ven sus entrenos; abajo, resumen de la semana con entrenos hechos, kilómetros y series. Se pueden añadir entrenos extra.
+- **Entrenos**: calendario del mes con la fuerza en amarillo, el running en rosa y la zumba de los lunes en verde (desde el Watch llega como «Baile») (relleno si está hecho, claro si está pendiente). Al tocar un día se ven sus entrenos; abajo, resumen de la semana con entrenos hechos, kilómetros y series. Se pueden añadir entrenos extra.
 - **Registro de fuerza**: ejercicios elegidos en cada entreno (recientes, por grupo muscular, buscando o escritos a mano), series con repeticiones y kg. Cada serie nueva se rellena con el peso de la última vez, y se muestra el récord de cada ejercicio.
 - **Running**: distancia, tiempo, ritmo, pulso y calorías, importados del Watch o escritos a mano.
 - **Importar del Apple Watch**: un Atajo del iPhone abre `#/importar?...` con los datos del último entreno; la app los enseña y los guarda al confirmar. Las instrucciones están en la propia app (Ajustes > Cómo enviar los entrenos con un Atajo).
+- **Peso**: pesaje de los domingos (Hoy avisa cuando toca), gráfica de evolución, cambio total y ritmo semanal. El último pesaje actualiza el peso con el que se calculan las calorías.
 - **Ajustes**: tus datos, el déficit, la segunda persona y sus raciones, y la copia de seguridad.
 
 ## Comidas y ciclo

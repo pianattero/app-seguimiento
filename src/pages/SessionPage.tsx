@@ -38,7 +38,7 @@ export function SessionPage({ id }: { id: number }) {
         ))}
       </div>
 
-      {session.kind === 'running' ? <RunDetails session={session} update={update} /> : <StrengthLog session={session} />}
+      {session.kind === 'strength' ? <StrengthLog session={session} /> : <RunDetails session={session} update={update} />}
 
       {session.isExtra && <DeleteButton onDelete={async () => {
         await deleteSession(id)
@@ -81,9 +81,9 @@ function RunDetails({ session, update }: { session: Session; update: (c: Partial
         title={session.externalId ? 'Datos del Apple Watch' : 'Datos del entreno'}
         footer={session.externalId ? undefined : 'Llegan solos con el Atajo del iPhone, o puedes copiarlos de la app Fitness.'}
       >
-        {field('Distancia', 'distanceKm', 'km')}
+        {session.kind === 'running' && field('Distancia', 'distanceKm', 'km')}
         {field('Tiempo', 'durationMin', 'min')}
-        {session.durationMin && session.distanceKm ? (
+        {session.kind === 'running' && session.durationMin && session.distanceKm ? (
           <Row label="Ritmo medio" value={formatPace(session.durationMin, session.distanceKm)} />
         ) : null}
         {field('Pulso medio', 'avgHeartRate', 'ppm', false)}

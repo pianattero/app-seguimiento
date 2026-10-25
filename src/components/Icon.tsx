@@ -57,6 +57,19 @@ const paths: Record<string, ReactNode> = {
       <path d="M16 16l4.5 4.5" />
     </>
   ),
+  music: (
+    <>
+      <path d="M9 18V5l11-2v13" />
+      <circle cx="6.5" cy="18" r="2.5" />
+      <circle cx="17.5" cy="16" r="2.5" />
+    </>
+  ),
+  scale: (
+    <>
+      <rect x="3.5" y="3.5" width="17" height="17" rx="4" />
+      <path d="M8.5 9a5 5 0 0 1 7 0M12 9.5l1.5-2" />
+    </>
+  ),
   book: <path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4Zm0 13a3 3 0 0 1 3-3h11" />,
 }
 

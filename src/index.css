@@ -254,22 +254,23 @@ button.primary { background: var(--dark); color: var(--on-dark); border-color: v
 .meal-add .icon { width: 20px; height: 20px; }
 .row.muted { gap: 8px; }
 
-/* Calendario de entrenos: fuerza amarilla, running rosa; relleno = hecho, claro = pendiente */
-.train-day.k-strength { --k1: var(--yellow); --k2: var(--yellow); }
-.train-day.k-running { --k1: var(--pink); --k2: var(--pink); }
-.train-day.k-both { --k1: var(--yellow); --k2: var(--pink); }
-.train-day.st-done { background: linear-gradient(135deg, var(--k1) 50%, var(--k2) 50%); color: var(--ink); font-weight: 600; }
-.train-day.st-planned {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--k1) 35%, transparent) 50%, color-mix(in srgb, var(--k2) 35%, transparent) 50%);
-  box-shadow: inset 0 0 0 2px var(--k1);
-}
+/* Calendario de entrenos: los colores por tipo van en línea desde WeekPage */
+.train-day.st-done { color: var(--ink); font-weight: 600; }
 .train-day.st-skipped { color: var(--muted); text-decoration: line-through; box-shadow: inset 0 0 0 1.5px var(--line); }
+.legend i.legend-planned { background: color-mix(in srgb, var(--yellow) 35%, transparent); box-shadow: inset 0 0 0 2px var(--yellow); }
+.kind-icon.kind-dance { background: var(--green); }
 
-/* Selector de ejercicios */
-.search-box.inset { margin: 12px 16px 4px; background: var(--input); border-color: transparent; }
-.search-box .icon { width: 18px; height: 18px; color: var(--muted); }
-.picker-label { padding: 10px 16px 0; font-size: 13px; color: var(--muted); font-weight: 500; }
-.chips + .picker-label { padding-top: 0; }
-.group-tabs { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
-.group-tabs .chip { flex: none; }
-.chip-soft { border-color: var(--line); background: var(--input); }
+/* Peso */
+.row-link.highlight { background: var(--yellow); color: var(--ink); }
+.row-link.highlight small { color: rgba(29, 27, 24, 0.7); }
+.weight-chart { padding: 12px 12px 8px; }
+.chart-readout { margin: 0 4px 6px; font-size: 15px; }
+.chart-readout strong { font-size: 22px; font-family: Fraunces, Georgia, serif; }
+.weight-chart svg { display: block; width: 100%; height: auto; }
+.weight-chart .grid { stroke: var(--line); stroke-width: 1; }
+.weight-chart .axis { fill: var(--muted); font-size: 11px; }
+.weight-chart .line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.weight-chart .dot { fill: var(--accent); stroke: var(--card); stroke-width: 2; }
+.weight-chart .crosshair { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.weight-chart .hit { fill: transparent; cursor: pointer; }
+.tab-bar a { min-width: 0; flex: 1; }
