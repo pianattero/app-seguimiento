@@ -20,7 +20,7 @@ export function floorKcal(sex: Sex): number {
 
 /** Estimación de kcal activas cuando aún no hay dato del Watch. */
 export function estimatedKcal(kind: SessionKind): number {
-  return kind === 'strength' ? 300 : 400
+  return { strength: 300, running: 400, dance: 350 }[kind]
 }
 
 /** Metabolismo basal, fórmula Mifflin-St Jeor. */

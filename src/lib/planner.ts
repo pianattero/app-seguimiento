@@ -12,10 +12,10 @@ export async function ensureWeek(weekStart: string, db: AppDB = defaultDb): Prom
   await db.transaction('rw', db.sessions, async () => {
     const existing = await sessionsInWeek(weekStart, db)
     for (const [index, day] of daysOfWeek(weekStart).entries()) {
-      const kind = weekPlan[index]
-      if (!kind) continue
-      if (existing.some((s) => s.day === day && s.kind === kind && !s.isExtra)) continue
-      await db.sessions.add({ day, kind, status: 'planned', isExtra: false })
+      for (const kind of weekPlan[index] ?? []) {
+        if (existing.some((s) => s.day === day && s.kind === kind && !s.isExtra)) continue
+        await db.sessions.add({ day, kind, status: 'planned', isExtra: false })
+      }
     }
   })
 }

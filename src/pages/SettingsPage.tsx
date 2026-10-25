@@ -69,6 +69,7 @@ function ProfileForm({ profile }: { profile: Profile }) {
         <Row label="Día de descanso" value={`${target(0)} kcal`} />
         <Row label="Día de fuerza" value={`${target(estimatedKcal('strength'))} kcal`} />
         <Row label="Día de running" value={`${target(estimatedKcal('running'))} kcal`} />
+        <Row label="Lunes (fuerza + zumba)" value={`${target(estimatedKcal('strength') + estimatedKcal('dance'))} kcal`} />
       </Card>
 
       <Card title="Segunda persona" footer="El menú se cocina para los dos y se reparte con este factor.">

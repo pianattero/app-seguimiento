@@ -40,7 +40,7 @@ export function ShortcutPage() {
 
       <Card title="Formato que entiende la app" footer="Si un paso no aparece igual en tu iPhone, dímelo y lo adaptamos.">
         <div className="row prose">
-          Tipo: «running» o «fuerza» (también vale el nombre que da Salud). Duración en minutos, segundos («1920 s») o
+          Tipo: «running», «fuerza» o «baile» (zumba) (también vale el nombre que da Salud). Duración en minutos, segundos («1920 s») o
           «0:32:10». Distancia en km o metros. Ejemplo completo:
           <code className="code">{example}</code>
         </div>

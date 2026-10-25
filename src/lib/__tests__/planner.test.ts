@@ -21,7 +21,7 @@ describe('planificación semanal', () => {
     await ensureWeek(monday, db)
     await ensureWeek(monday, db)
     const sessions = await sessionsInWeek(monday, db)
-    expect(sessions.map((s) => s.kind)).toEqual(['strength', 'running', 'strength', 'running'])
+    expect(sessions.map((s) => s.kind)).toEqual(['strength', 'dance', 'running', 'strength', 'running'])
   })
 
   it('asigna el running del martes y crea un extra el sábado, sin duplicar', async () => {
@@ -30,10 +30,16 @@ describe('planificación semanal', () => {
       await mergeWorkout(run('2026-10-31', 'b'), db)
     }
     const sessions = await sessionsInWeek(monday, db)
-    expect(sessions).toHaveLength(5)
+    expect(sessions).toHaveLength(6)
     const tuesday = sessions.find((s) => s.externalId === 'a')!
     expect(tuesday).toMatchObject({ day: '2026-10-27', isExtra: false, status: 'done', distanceKm: 5 })
     expect(sessions.find((s) => s.externalId === 'b')).toMatchObject({ isExtra: true, status: 'done' })
+  })
+
+  it('un «Baile» del Watch completa la zumba del lunes', async () => {
+    await mergeWorkout({ ...run(monday, 'z'), kind: 'dance', distanceKm: undefined }, db)
+    const sessions = await sessionsInWeek(monday, db)
+    expect(sessions.find((s) => s.externalId === 'z')).toMatchObject({ kind: 'dance', isExtra: false, status: 'done' })
   })
 
   it('precarga el peso de la última vez', async () => {

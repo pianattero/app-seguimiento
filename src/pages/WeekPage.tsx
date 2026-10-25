@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { Icon } from '../components/Icon'
 import { Card, Page, Row, SessionRow } from '../components/ui'
 import { addDays, dayTitle, monthGrid, parseDay, startOfWeek, today, weekTitle } from '../lib/dates'
@@ -9,17 +9,25 @@ import { ensureWeek } from '../lib/planner'
 import { navigate } from '../lib/router'
 import type { Session, SessionKind } from '../lib/types'
 
-/** Clases de un día del calendario: color por tipo de entreno y relleno según si está hecho. */
-function dayClass(sessions: Session[]): string {
+const kindColor: Record<SessionKind, string> = { strength: 'var(--yellow)', running: 'var(--pink)', dance: 'var(--green)' }
+const kindOrder: SessionKind[] = ['strength', 'running', 'dance']
+
+/** Aspecto de un día del calendario: un color por tipo de entreno; relleno si está hecho, claro si está pendiente. */
+function dayLook(sessions: Session[]): { className: string; style?: CSSProperties } {
   const active = sessions.filter((s) => s.status !== 'skipped')
-  const kinds = new Set((active.length ? active : sessions).map((s) => s.kind))
-  if (kinds.size === 0) return ''
-  const kind = kinds.size === 2 ? 'k-both' : kinds.has('strength') ? 'k-strength' : 'k-running'
+  const kinds = kindOrder.filter((k) => (active.length ? active : sessions).some((s) => s.kind === k))
+  if (kinds.length === 0) return { className: '' }
   const status = sessions.some((s) => s.status === 'done') ? 'st-done' : active.length ? 'st-planned' : 'st-skipped'
-  return `train-day ${kind} ${status}`
+  const colors = kinds.map((k) => (status === 'st-done' ? kindColor[k] : `color-mix(in srgb, ${kindColor[k]} 35%, transparent)`))
+  const step = 100 / colors.length
+  const background = `linear-gradient(135deg, ${colors.map((c, i) => `${c} ${i * step}% ${(i + 1) * step}%`).join(', ')})`
+  return {
+    className: `train-day ${status}`,
+    style: status === 'st-skipped' ? undefined : { background, ...(status === 'st-planned' ? { boxShadow: `inset 0 0 0 2px ${kindColor[kinds[0]]}` } : {}) },
+  }
 }
 
-/** Entrenos del mes en forma de calendario: fuerza en amarillo y running en rosa. */
+/** Entrenos del mes en forma de calendario: fuerza en amarillo, running en rosa y zumba en verde. */
 export function WeekPage({ month, selected: initial }: { month: string; selected?: string }) {
   const { days, prev, next, title } = monthGrid(month)
   const [selected, setSelected] = useState(initial)
@@ -57,24 +65,26 @@ export function WeekPage({ month, selected: initial }: { month: string; selected
       <div className="month-grid" role="grid" aria-label={`Entrenos de ${title}`}>
         {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((d) => <div key={d} className="month-head">{d}</div>)}
         {days.map((day) => {
+          const look = dayLook(sessions.filter((s) => s.day === day))
           const cls = [
             'month-day',
             day.slice(0, 7) === month ? '' : 'out',
-            dayClass(sessions.filter((s) => s.day === day)),
+            look.className,
             day === today() ? 'is-today' : '',
             day === selected ? 'selected' : '',
           ].filter(Boolean).join(' ')
           return (
-            <button key={day} className={cls} onClick={() => setSelected(day === selected ? undefined : day)} aria-label={dayTitle(day)}>
+            <button key={day} className={cls} style={look.style} onClick={() => setSelected(day === selected ? undefined : day)} aria-label={dayTitle(day)}>
               {parseDay(day).getDate()}
             </button>
           )
         })}
       </div>
       <div className="legend">
-        <span><i className="train-day k-strength st-done" />Fuerza</span>
-        <span><i className="train-day k-running st-done" />Running</span>
-        <span><i className="train-day k-strength st-planned" />Pendiente (color claro)</span>
+        <span><i style={{ background: kindColor.strength }} />Fuerza</span>
+        <span><i style={{ background: kindColor.running }} />Running</span>
+        <span><i style={{ background: kindColor.dance }} />Zumba</span>
+        <span><i className="legend-planned" />Pendiente (color claro)</span>
       </div>
 
       {selected && (
@@ -90,6 +100,9 @@ export function WeekPage({ month, selected: initial }: { month: string; selected
           </button>
           <button className="row row-button" onClick={() => addExtra('strength', selected)}>
             <Icon name="plus" className="row-icon" /> Añadir fuerza extra
+          </button>
+          <button className="row row-button" onClick={() => addExtra('dance', selected)}>
+            <Icon name="plus" className="row-icon" /> Añadir zumba extra
           </button>
         </Card>
       )}

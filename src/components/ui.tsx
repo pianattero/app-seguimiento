@@ -1,7 +1,7 @@
-import { Icon } from './Icon'
+import { Icon, type IconName } from './Icon'
 import { useEffect, useState, type ReactNode } from 'react'
 import { parseQuantity } from '../lib/importer'
-import { sessionTitle, statusLabel, type Session, type SessionStatus } from '../lib/types'
+import { sessionTitle, statusLabel, type Session, type SessionKind, type SessionStatus } from '../lib/types'
 import { formatKm, formatPace } from '../lib/format'
 
 export function Page({ title, actions, children }: { title: string; actions?: ReactNode; children: ReactNode }) {
@@ -44,6 +44,8 @@ export function StatusBadge({ status }: { status: SessionStatus }) {
   return <span className={`badge badge-${status}`}>{statusLabel[status]}</span>
 }
 
+const kindIcon: Record<SessionKind, IconName> = { strength: 'dumbbell', running: 'run', dance: 'music' }
+
 export function SessionRow({ session, setCount }: { session: Session; setCount?: number }) {
   let detail: string | undefined
   if (session.kind === 'running' && session.distanceKm) {
@@ -55,7 +57,7 @@ export function SessionRow({ session, setCount }: { session: Session; setCount?:
   return (
     <a className="row row-link" href={`#/sesion/${session.id}`}>
       <span className={`kind-icon kind-${session.kind}`} aria-hidden>
-        <Icon name={session.kind === 'strength' ? 'dumbbell' : 'run'} />
+        <Icon name={kindIcon[session.kind]} />
       </span>
       <span className="row-main">
         <strong>{sessionTitle(session)}</strong>
