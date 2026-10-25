@@ -1,15 +1,18 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
 import { Card, Page } from '../components/ui'
-import { addDays, dayTitle, daysOfWeek, today, weekTitle } from '../lib/dates'
+import { addDays, daysOfWeek, parseDay, today, weekTitle } from '../lib/dates'
 import { planForDay } from '../lib/dayPlan'
 import { db } from '../lib/db'
 import { formatNumber } from '../lib/format'
 import { fillWeek, mealNutrition, totals } from '../lib/meals'
 import { sessionsInWeek } from '../lib/planner'
-import { mealSlots, recipeById, slotLabel } from '../lib/recipes'
+import { getRecipe, mealSlots, slotLabel } from '../lib/recipes'
 import type { Meal } from '../lib/types'
 
+const shortDay = new Intl.DateTimeFormat('es-ES', { weekday: 'short' })
+
+/** Menú semanal en forma de calendario: una columna por día y una fila por comida. */
 export function MealsPage({ weekStart }: { weekStart: string }) {
   const weekEnd = addDays(weekStart, 7)
   const meals = useLiveQuery(() => db.meals.where('day').between(weekStart, weekEnd).toArray(), [weekStart]) ?? []
@@ -18,6 +21,7 @@ export function MealsPage({ weekStart }: { weekStart: string }) {
   const periods = useLiveQuery(() => db.periods.toArray()) ?? []
   const [confirmReplace, setConfirmReplace] = useState(false)
   const [busy, setBusy] = useState(false)
+  const days = daysOfWeek(weekStart)
 
   async function fill(replace: boolean) {
     setBusy(true)
@@ -47,31 +51,69 @@ export function MealsPage({ weekStart }: { weekStart: string }) {
             {confirmReplace ? 'Pulsa otra vez para rehacer' : 'Rehacer semana'}
           </button>
         )}
-        <a className="button-link" href={`#/compra?w=${weekStart}`}>🛒 Lista de la compra</a>
       </div>
 
-      {daysOfWeek(weekStart).map((day) => {
-        const dayMeals = meals.filter((m) => m.day === day)
-        const planned = totals(dayMeals)
-        const target = profile ? planForDay(day, profile, sessions, periods.map((p) => p.start)).target : undefined
-        return (
-          <Card
-            key={day}
-            title={`${dayTitle(day)}${day === today() ? ' · hoy' : ''}`}
-            aside={target ? `${formatNumber(planned.kcal)} / ${target.kcal} kcal` : undefined}
-          >
-            {mealSlots.map((slot) => (
-              <MealRow key={slot} day={day} slot={slot} meal={dayMeals.find((m) => m.slot === slot)} />
-            ))}
-          </Card>
-        )
-      })}
+      <div className="calendar-scroll" role="grid" aria-label="Menú de la semana">
+        <div className="meal-grid">
+          <div className="meal-grid-corner" />
+          {days.map((day) => {
+            const planned = totals(meals.filter((m) => m.day === day))
+            const target = profile ? planForDay(day, profile, sessions, periods.map((p) => p.start)).target.kcal : undefined
+            const over = target !== undefined && planned.kcal > target * 1.1
+            return (
+              <div key={day} className={`meal-grid-day${day === today() ? ' is-today' : ''}`} role="columnheader">
+                <span className="weekday">{shortDay.format(parseDay(day)).replace('.', '')}</span>
+                <span className="daynum">{parseDay(day).getDate()}</span>
+                {target !== undefined && (
+                  <span className={`kcal${over ? ' over' : ''}`}>{formatNumber(planned.kcal)}/{target}</span>
+                )}
+              </div>
+            )
+          })}
+          {mealSlots.map((slot) => (
+            <SlotRow key={slot} slot={slot} days={days} meals={meals} />
+          ))}
+        </div>
+      </div>
+      <p className="card-footer">Desliza para ver toda la semana. Toca una comida para cambiarla. Arriba: kcal planificadas / objetivo.</p>
+
+      <Card>
+        <a className="row row-link" href={`#/compra?w=${weekStart}`}>🛒 Lista de la compra ›</a>
+        <a className="row row-link" href="#/preferencias">🚫 Alimentos que no quieres ›</a>
+        <a className="row row-link" href="#/receta-nueva">＋ Añadir una receta propia ›</a>
+      </Card>
     </Page>
   )
 }
 
+function SlotRow({ slot, days, meals }: { slot: Meal['slot']; days: string[]; meals: Meal[] }) {
+  return (
+    <>
+      <div className="meal-grid-slot" role="rowheader">{slotLabel[slot]}</div>
+      {days.map((day) => {
+        const meal = meals.find((m) => m.day === day && m.slot === slot)
+        const recipe = meal?.recipeId ? getRecipe(meal.recipeId) : undefined
+        const name = recipe?.name ?? meal?.customName
+        return (
+          <a key={day} className={`meal-cell${meal ? '' : ' empty'}${day === today() ? ' is-today' : ''}`} href={`#/comida/${day}/${slot}`} role="gridcell">
+            {name ? (
+              <>
+                <span className="meal-name">{name}</span>
+                <span className="meal-kcal">{formatNumber(mealNutrition(meal!).kcal)} kcal</span>
+              </>
+            ) : (
+              <span className="meal-add">＋</span>
+            )}
+          </a>
+        )
+      })}
+    </>
+  )
+}
+
+/** Fila de comida en formato lista (la usa la pantalla Hoy). */
 export function MealRow({ day, slot, meal }: { day: string; slot: Meal['slot']; meal?: Meal }) {
-  const recipe = meal?.recipeId ? recipeById.get(meal.recipeId) : undefined
+  const recipe = meal?.recipeId ? getRecipe(meal.recipeId) : undefined
   const name = recipe?.name ?? meal?.customName
   const kcal = meal ? mealNutrition(meal).kcal : 0
   return (

@@ -4,7 +4,7 @@
  */
 
 export type MealSlot = 'desayuno' | 'almuerzo' | 'merienda' | 'cena'
-export type ShopSection = 'Fruta y verdura' | 'Carne y pescado' | 'Lácteos y huevos' | 'Panadería' | 'Despensa'
+export type ShopSection = 'Fruta y verdura' | 'Carne y pescado' | 'Lácteos y huevos' | 'Panadería' | 'Despensa' | 'Otros'
 
 export const mealSlots: MealSlot[] = ['desayuno', 'almuerzo', 'merienda', 'cena']
 export const slotLabel: Record<MealSlot, string> = {
@@ -16,7 +16,7 @@ export const slotLabel: Record<MealSlot, string> = {
 /** Parte de las calorías del día que va a cada comida. */
 export const slotShare: Record<MealSlot, number> = { desayuno: 0.25, almuerzo: 0.35, merienda: 0.1, cena: 0.3 }
 
-export const shopSections: ShopSection[] = ['Fruta y verdura', 'Carne y pescado', 'Lácteos y huevos', 'Panadería', 'Despensa']
+export const shopSections: ShopSection[] = ['Fruta y verdura', 'Carne y pescado', 'Lácteos y huevos', 'Panadería', 'Despensa', 'Otros']
 
 export interface Ingredient {
   name: string
@@ -71,7 +71,6 @@ export const recipes: Recipe[] = [
     kcal: 285, proteinG: 14, carbsG: 47, fatG: 4, minutes: 10,
     ingredients: [de('Copos de avena', 40), lh('Leche desnatada', 250, 'ml'), fv('Plátano', 50)],
     steps: ['Cuece la avena con la leche a fuego medio 5 minutos, removiendo.', 'Sirve con el plátano en rodajas y canela.'],
-    thermomix: ['Pon la avena y la leche en el vaso: 7 min / 90 °C / giro inverso / velocidad cuchara.', 'Sirve con el plátano y canela.'],
   },
   {
     id: 'tortilla-claras-pavo',
@@ -88,7 +87,6 @@ export const recipes: Recipe[] = [
     kcal: 390, proteinG: 29, carbsG: 53, fatG: 7, minutes: 5,
     ingredients: [lh('Skyr natural', 150), lh('Leche desnatada', 200, 'ml'), fv('Plátano', 100), de('Copos de avena', 20), de('Crema de cacahuete', 10)],
     steps: ['Tritura todo en la batidora hasta que quede fino.'],
-    thermomix: ['Pon todos los ingredientes en el vaso: 1 min / velocidad 8.'],
   },
 
   // Almuerzos
@@ -206,7 +204,6 @@ export const recipes: Recipe[] = [
     kcal: 170, proteinG: 6, carbsG: 18, fatG: 7, minutes: 5,
     ingredients: [de('Garbanzos cocidos', 60), de('Tahini', 5), de('Aceite de oliva', 3, 'ml'), fv('Zanahoria', 80), fv('Pepino', 70)],
     steps: ['Tritura los garbanzos con el tahini, el aceite, limón, comino y un poco de agua.', 'Sirve con la zanahoria y el pepino en bastones.'],
-    thermomix: ['Pon garbanzos, tahini, aceite, limón, comino y 20 ml de agua: 30 s / velocidad 7. Baja los restos y repite si hace falta.'],
   },
   {
     id: 'skyr-nueces',
@@ -275,10 +272,341 @@ export const recipes: Recipe[] = [
     ingredients: [pan('Tortillas de trigo integral', 1, 'ud'), cp('Pechuga de pavo en lonchas', 80), lh('Queso fresco', 50), fv('Lechuga', 40), fv('Tomate', 60)],
     steps: ['Rellena la tortilla con el pavo, el queso, la lechuga y el tomate, y enróllala.'],
   },
+  // Más desayunos
+  {
+    id: 'tostada-tomate-jamon',
+    name: 'Tostada con tomate, aceite y jamón serrano',
+    slots: ['desayuno'],
+    kcal: 280, proteinG: 15, carbsG: 28, fatG: 12, minutes: 5,
+    ingredients: [pan('Pan integral', 60), fv('Tomate', 60), de('Aceite de oliva', 5, 'ml'), cp('Jamón serrano', 30)],
+    steps: ['Tuesta el pan, ralla el tomate por encima, añade el aceite y el jamón.'],
+  },
+  {
+    id: 'tortitas-avena-platano',
+    name: 'Tortitas de avena y plátano',
+    slots: ['desayuno'],
+    kcal: 295, proteinG: 19, carbsG: 36, fatG: 8, minutes: 15,
+    ingredients: [de('Copos de avena', 40), lh('Huevos', 1, 'ud'), lh('Claras de huevo', 60, 'ml'), fv('Plátano', 50)],
+    steps: ['Tritura la avena, el huevo, las claras y el plátano.', 'Haz tortitas pequeñas en una sartén antiadherente, 2 minutos por lado.'],
+  },
+  {
+    id: 'requeson-kiwi-chia',
+    name: 'Requesón con kiwi y chía',
+    slots: ['desayuno', 'merienda'],
+    kcal: 255, proteinG: 20, carbsG: 25, fatG: 9, minutes: 3,
+    ingredients: [lh('Requesón', 150), fv('Kiwi', 2, 'ud'), de('Semillas de chía', 10)],
+    steps: ['Pon el requesón en un bol con el kiwi troceado y la chía.'],
+  },
+  {
+    id: 'muesli-leche-fresas',
+    name: 'Muesli con leche y fresas',
+    slots: ['desayuno'],
+    kcal: 330, proteinG: 14, carbsG: 49, fatG: 8, minutes: 3,
+    ingredients: [de('Muesli sin azúcar', 50), lh('Leche semidesnatada', 250, 'ml'), fv('Fresas', 100)],
+    steps: ['Sirve el muesli con la leche y las fresas troceadas.'],
+  },
+  {
+    id: 'revuelto-champinones',
+    name: 'Revuelto de champiñones con tostada',
+    slots: ['desayuno', 'cena'],
+    kcal: 290, proteinG: 19, carbsG: 20, fatG: 15, minutes: 10,
+    ingredients: [lh('Huevos', 2, 'ud'), fv('Champiñones', 100), pan('Pan integral', 40), de('Aceite de oliva', 3, 'ml')],
+    steps: ['Saltea los champiñones laminados.', 'Añade los huevos batidos y remueve hasta que cuajen.', 'Sirve con el pan tostado.'],
+  },
+
+  // Más meriendas
+  {
+    id: 'yogur-kiwi',
+    name: 'Yogur natural con kiwi',
+    slots: ['merienda'],
+    kcal: 155, proteinG: 11, carbsG: 25, fatG: 1, minutes: 2,
+    ingredients: [lh('Yogur natural desnatado', 2, 'ud'), fv('Kiwi', 1, 'ud')],
+    steps: ['Trocea el kiwi sobre los yogures.'],
+  },
+  {
+    id: 'pan-queso-fresco-tomate',
+    name: 'Tostada de queso fresco y tomate',
+    slots: ['merienda'],
+    kcal: 195, proteinG: 11, carbsG: 21, fatG: 8, minutes: 3,
+    ingredients: [pan('Pan integral', 40), lh('Queso fresco', 60), fv('Tomate', 50)],
+    steps: ['Tuesta el pan y ponle el queso y el tomate en rodajas.'],
+  },
+  {
+    id: 'kefir-arandanos',
+    name: 'Kéfir con arándanos',
+    slots: ['merienda'],
+    kcal: 135, proteinG: 7, carbsG: 17, fatG: 4, minutes: 1,
+    ingredients: [lh('Kéfir', 200, 'ml'), fv('Arándanos', 60)],
+    steps: ['Sirve el kéfir con los arándanos.'],
+  },
+  {
+    id: 'edamame',
+    name: 'Edamame con sal',
+    slots: ['merienda'],
+    kcal: 120, proteinG: 11, carbsG: 9, fatG: 5, minutes: 5,
+    ingredients: [de('Edamame congelado', 100)],
+    steps: ['Cuece el edamame 4 minutos y añade una pizca de sal.'],
+  },
+  {
+    id: 'pera-chocolate',
+    name: 'Pera con chocolate negro',
+    slots: ['merienda'],
+    kcal: 175, proteinG: 2, carbsG: 24, fatG: 8, minutes: 1,
+    ingredients: [fv('Peras', 1, 'ud'), de('Chocolate negro 85 %', 15)],
+    steps: ['Acompaña la pera con un par de onzas de chocolate.'],
+  },
+
+  // Más almuerzos
+  {
+    id: 'risotto-pollo-champinones',
+    name: 'Risotto de pollo y champiñones',
+    slots: ['almuerzo'],
+    kcal: 445, proteinG: 34, carbsG: 53, fatG: 10, minutes: 30,
+    ingredients: [de('Arroz arborio', 60), cp('Pechuga de pollo', 100), fv('Champiñones', 100), fv('Cebolla', 40), lh('Queso parmesano', 10), de('Aceite de oliva', 5, 'ml')],
+    steps: ['Sofríe la cebolla y el pollo en dados.', 'Añade los champiñones y el arroz, y ve echando caldo caliente poco a poco 18 minutos.', 'Termina con el parmesano.'],
+    thermomix: [
+      'Trocea la cebolla: 4 s / velocidad 5. Añade el aceite: 5 min / 120 °C / velocidad 1.',
+      'Añade el pollo y los champiñones: 5 min / 120 °C / giro inverso / velocidad cuchara.',
+      'Añade el arroz y 200 ml de caldo por ración: 17 min / 100 °C / giro inverso / velocidad cuchara. Mezcla con el parmesano y deja reposar 2 minutos.',
+    ],
+  },
+  {
+    id: 'chili-sin-carne-ternera',
+    name: 'Chili de alubias y ternera con arroz',
+    slots: ['almuerzo'],
+    kcal: 500, proteinG: 33, carbsG: 67, fatG: 9, minutes: 35,
+    ingredients: [de('Alubias rojas cocidas', 150), cp('Carne picada de ternera magra', 100), de('Tomate triturado', 150), fv('Pimiento rojo', 60), fv('Cebolla', 40), de('Arroz basmati', 40)],
+    steps: ['Sofríe la cebolla y el pimiento, añade la carne y dórala.', 'Añade el tomate, las alubias, comino y pimentón; cocina 20 minutos.', 'Sirve con el arroz.'],
+    thermomix: [
+      'Trocea la cebolla y el pimiento: 4 s / velocidad 5. Sofríe: 5 min / 120 °C / velocidad 1.',
+      'Añade la carne: 5 min / 100 °C / giro inverso / velocidad cuchara.',
+      'Añade el tomate, las alubias y las especias: 20 min / 100 °C / giro inverso / velocidad cuchara. Cuece el arroz aparte.',
+    ],
+  },
+  {
+    id: 'pavo-boniato',
+    name: 'Pavo a la plancha con boniato asado',
+    slots: ['almuerzo'],
+    kcal: 420, proteinG: 38, carbsG: 43, fatG: 9, minutes: 35,
+    ingredients: [cp('Pechuga de pavo', 150), fv('Boniato', 200), fv('Lechuga', 100), de('Aceite de oliva', 7, 'ml')],
+    steps: ['Asa el boniato en gajos 30 minutos a 200 °C.', 'Haz el pavo a la plancha.', 'Acompaña con la ensalada.'],
+    thermomix: ['Pon 500 ml de agua en el vaso, el boniato en gajos en el Varoma y el pavo en la bandeja: 30 min / Varoma / velocidad 1. Dóralo después en la sartén si quieres.'],
+  },
+  {
+    id: 'albondigas-pavo-tomate',
+    name: 'Albóndigas de pavo en salsa de tomate con arroz',
+    slots: ['almuerzo'],
+    kcal: 480, proteinG: 35, carbsG: 55, fatG: 11, minutes: 40,
+    ingredients: [cp('Carne picada de pavo', 140), de('Pan rallado', 10), de('Tomate triturado', 150), fv('Cebolla', 40), de('Arroz basmati', 50), de('Aceite de oliva', 5, 'ml')],
+    steps: ['Forma las albóndigas con la carne, el pan rallado, ajo y perejil.', 'Haz la salsa con la cebolla y el tomate y cuece en ella las albóndigas 20 minutos.', 'Sirve con el arroz.'],
+    thermomix: [
+      'Haz la salsa: cebolla 4 s / velocidad 5, sofríe con el aceite 5 min / 120 °C / velocidad 1, añade el tomate 10 min / 100 °C / velocidad 1.',
+      'Pon las albóndigas en el Varoma: 25 min / Varoma / velocidad 1 (con 300 ml de agua en el vaso si la salsa va aparte).',
+      'Junta las albóndigas con la salsa. Cuece el arroz aparte.',
+    ],
+  },
+  {
+    id: 'arroz-verduras-gambas',
+    name: 'Arroz con verduras y gambas',
+    slots: ['almuerzo'],
+    kcal: 430, proteinG: 29, carbsG: 56, fatG: 9, minutes: 30,
+    ingredients: [de('Arroz redondo', 60), cp('Gambas peladas', 120), fv('Judías verdes', 60), fv('Pimiento rojo', 60), de('Tomate triturado', 50), de('Aceite de oliva', 7, 'ml')],
+    steps: ['Sofríe las verduras con el aceite, añade el tomate y el pimentón.', 'Añade el arroz y el caldo, cuece 15 minutos y pon las gambas los últimos 3.'],
+    thermomix: [
+      'Sofríe las verduras con el aceite: 5 min / 120 °C / giro inverso / velocidad cuchara.',
+      'Añade el tomate, el arroz y 200 ml de caldo por ración: 13 min / 100 °C / giro inverso / velocidad cuchara.',
+      'Añade las gambas: 3 min / 100 °C / giro inverso / velocidad cuchara.',
+    ],
+  },
+  {
+    id: 'fajitas-pollo',
+    name: 'Fajitas de pollo con pimientos',
+    slots: ['almuerzo', 'cena'],
+    kcal: 470, proteinG: 38, carbsG: 49, fatG: 12, minutes: 20,
+    ingredients: [pan('Tortillas de trigo integral pequeñas', 2, 'ud'), cp('Pechuga de pollo', 130), fv('Pimiento rojo', 100), fv('Cebolla', 50), de('Aceite de oliva', 5, 'ml')],
+    steps: ['Saltea el pollo en tiras con el pimiento y la cebolla y especias de fajita.', 'Rellena las tortillas calientes.'],
+  },
+  {
+    id: 'ternera-wok-arroz',
+    name: 'Ternera al wok con verduras y arroz',
+    slots: ['almuerzo'],
+    kcal: 460, proteinG: 34, carbsG: 48, fatG: 12, minutes: 20,
+    ingredients: [cp('Ternera en tiras', 130), de('Arroz basmati', 50), fv('Brócoli', 100), fv('Zanahoria', 50), de('Salsa de soja', 10, 'ml'), de('Aceite de oliva', 5, 'ml')],
+    steps: ['Cuece el arroz.', 'Saltea a fuego fuerte la ternera, retírala y saltea las verduras.', 'Junta todo con la soja.'],
+  },
+  {
+    id: 'macarrones-atun-tomate',
+    name: 'Macarrones integrales con atún y tomate',
+    slots: ['almuerzo'],
+    kcal: 405, proteinG: 23, carbsG: 59, fatG: 7, minutes: 20,
+    ingredients: [de('Pasta integral', 70), de('Atún al natural (lata)', 1, 'ud'), de('Tomate triturado', 150), fv('Cebolla', 40), de('Aceite de oliva', 5, 'ml')],
+    steps: ['Cuece la pasta.', 'Sofríe la cebolla, añade el tomate y cocina 10 minutos.', 'Añade el atún y mezcla con la pasta.'],
+    thermomix: [
+      'Trocea la cebolla: 4 s / velocidad 5. Sofríe con el aceite: 5 min / 120 °C / velocidad 1.',
+      'Añade el tomate: 10 min / 100 °C / velocidad 1. Añade el atún: 1 min / giro inverso / velocidad cuchara. Cuece la pasta aparte.',
+    ],
+  },
+
+  // Más cenas
+  {
+    id: 'crema-calabaza-jamon',
+    name: 'Crema de calabaza con virutas de jamón',
+    slots: ['cena'],
+    kcal: 285, proteinG: 20, carbsG: 30, fatG: 10, minutes: 30,
+    ingredients: [fv('Calabaza', 300), fv('Cebolla', 50), fv('Zanahoria', 50), de('Aceite de oliva', 5, 'ml'), lh('Queso fresco batido 0 %', 100), cp('Jamón serrano', 30)],
+    steps: ['Pocha la cebolla, añade la calabaza y la zanahoria con agua justa y cuece 20 minutos.', 'Tritura con el queso batido y sirve con el jamón por encima.'],
+    thermomix: [
+      'Trocea la cebolla: 4 s / velocidad 5. Sofríe con el aceite: 5 min / 120 °C / velocidad 1.',
+      'Añade calabaza, zanahoria y 150 ml de agua por ración: 20 min / 100 °C / velocidad 1.',
+      'Añade el queso batido y tritura: 1 min / velocidad 5-10 progresivo.',
+    ],
+  },
+  {
+    id: 'merluza-papillote',
+    name: 'Merluza en papillote con verduras',
+    slots: ['cena'],
+    kcal: 320, proteinG: 35, carbsG: 26, fatG: 7, minutes: 25,
+    ingredients: [cp('Merluza', 180), fv('Calabacín', 100), fv('Cebolla', 40), fv('Tomate', 80), fv('Patata', 100), de('Aceite de oliva', 5, 'ml')],
+    steps: ['Pon la verdura en láminas sobre papel de horno, encima la merluza y el aceite.', 'Cierra el paquete y hornea 18 minutos a 200 °C.'],
+    thermomix: ['Pon 500 ml de agua en el vaso. Verduras y patata en el Varoma y la merluza en la bandeja: 25 min / Varoma / velocidad 1.'],
+  },
+  {
+    id: 'hamburguesa-pollo',
+    name: 'Hamburguesa de pollo con ensalada',
+    slots: ['cena'],
+    kcal: 350, proteinG: 39, carbsG: 29, fatG: 8, minutes: 15,
+    ingredients: [cp('Carne picada de pollo', 150), pan('Pan de hamburguesa integral', 1, 'ud'), fv('Lechuga', 50), fv('Tomate', 50)],
+    steps: ['Forma la hamburguesa y hazla a la plancha.', 'Monta el pan con lechuga y tomate.'],
+  },
+  {
+    id: 'revuelto-gambas-ajetes',
+    name: 'Revuelto de gambas y ajetes',
+    slots: ['cena'],
+    kcal: 355, proteinG: 31, carbsG: 17, fatG: 17, minutes: 10,
+    ingredients: [lh('Huevos', 2, 'ud'), cp('Gambas peladas', 80), fv('Ajetes', 60), de('Aceite de oliva', 5, 'ml'), pan('Pan integral', 30)],
+    steps: ['Saltea los ajetes y las gambas.', 'Añade los huevos batidos y remueve hasta que cuajen.'],
+  },
+  {
+    id: 'sopa-pollo-fideos',
+    name: 'Sopa de pollo con fideos',
+    slots: ['cena'],
+    kcal: 265, proteinG: 28, carbsG: 32, fatG: 2, minutes: 35,
+    ingredients: [cp('Pechuga de pollo', 100), de('Fideos', 30), fv('Zanahoria', 50), fv('Puerro', 50)],
+    steps: ['Cuece el pollo con la zanahoria y el puerro en 400 ml de agua 25 minutos.', 'Desmenuza el pollo, añade los fideos y cuece 5 minutos más.'],
+    thermomix: [
+      'Pon el pollo, la zanahoria, el puerro y 400 ml de agua por ración: 25 min / 100 °C / giro inverso / velocidad cuchara.',
+      'Añade los fideos: 5 min / 100 °C / giro inverso / velocidad cuchara.',
+    ],
+  },
+  {
+    id: 'lubina-horno',
+    name: 'Lubina al horno con patata y pimiento',
+    slots: ['cena', 'almuerzo'],
+    kcal: 355, proteinG: 37, carbsG: 25, fatG: 11, minutes: 35,
+    ingredients: [cp('Lubina', 180), fv('Patata', 100), fv('Pimiento rojo', 80), fv('Cebolla', 50), de('Aceite de oliva', 7, 'ml')],
+    steps: ['Hornea la patata, el pimiento y la cebolla 20 minutos a 200 °C.', 'Pon la lubina encima y hornea 12 minutos más.'],
+  },
+  {
+    id: 'tofu-salteado',
+    name: 'Tofu salteado con verduras y arroz',
+    slots: ['cena', 'almuerzo'],
+    kcal: 420, proteinG: 24, carbsG: 43, fatG: 16, minutes: 20,
+    ingredients: [de('Tofu firme', 150), fv('Brócoli', 100), fv('Pimiento rojo', 80), de('Salsa de soja', 10, 'ml'), de('Arroz basmati', 40), de('Aceite de oliva', 5, 'ml')],
+    steps: ['Cuece el arroz.', 'Dora el tofu en dados y saltea las verduras.', 'Junta todo con la soja.'],
+  },
+  {
+    id: 'pizza-tortilla',
+    name: 'Pizza rápida en tortilla integral',
+    slots: ['cena'],
+    kcal: 345, proteinG: 26, carbsG: 33, fatG: 11, minutes: 15,
+    ingredients: [pan('Tortillas de trigo integral', 1, 'ud'), de('Tomate triturado', 50), lh('Mozzarella light', 60), fv('Champiñones', 50), cp('Pechuga de pavo en lonchas', 40)],
+    steps: ['Unta la tortilla con el tomate, añade la mozzarella, los champiñones y el pavo.', 'Hornea 8 minutos a 220 °C.'],
+  },
 ]
 
 export const recipeById = new Map(recipes.map((r) => [r.id, r]))
 
-export function recipesFor(slot: MealSlot): Recipe[] {
-  return recipes.filter((r) => r.slots.includes(slot))
+/** Recetas propias guardadas en el móvil; la app las registra al cargar. */
+let customRecipes: Recipe[] = []
+
+export function setCustomRecipes(list: Recipe[]) {
+  customRecipes = list
+}
+
+export function allRecipes(): Recipe[] {
+  return [...recipes, ...customRecipes]
+}
+
+export function getRecipe(id: string): Recipe | undefined {
+  return recipeById.get(id) ?? customRecipes.find((r) => r.id === id)
+}
+
+/** Minúsculas y sin tildes, para comparar textos. */
+export function normalize(text: string): string {
+  return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+}
+
+function searchableText(recipe: Recipe): string {
+  return normalize([recipe.name, ...recipe.ingredients.map((i) => i.name)].join(' '))
+}
+
+/** Grupos de alimentos: excluir el grupo excluye cada uno de sus alimentos. */
+export const foodGroups: Record<string, string[]> = {
+  lacteos: ['leche', 'yogur', 'queso', 'quesito', 'skyr', 'kefir', 'requeson', 'mozzarella', 'parmesano'],
+  pescado: ['salmon', 'merluza', 'bacalao', 'lubina', 'atun'],
+  marisco: ['gambas'],
+  'frutos secos': ['nueces', 'almendras', 'cacahuete'],
+  cerdo: ['jamon', 'chorizo', 'cerdo'],
+  'carne roja': ['ternera'],
+  huevo: ['huevo', 'claras'],
+  gluten: ['pan', 'pasta', 'fideos', 'harina', 'tortilla de trigo', 'tortillas de trigo', 'muesli', 'avena'],
+}
+
+function expand(term: string): string[] {
+  const t = normalize(term.trim())
+  return [t, ...(foodGroups[t] ?? [])]
+}
+
+/** false si la receta contiene algo de la lista de alimentos excluidos (en el nombre o en los ingredientes). */
+export function isAllowed(recipe: Recipe, excluded: string[] = []): boolean {
+  const text = searchableText(recipe)
+  return !excluded.some((term) => term.trim() && expand(term).some((t) => text.includes(t)))
+}
+
+export function recipesFor(slot: MealSlot, excluded: string[] = []): Recipe[] {
+  return allRecipes().filter((r) => r.slots.includes(slot) && isAllowed(r, excluded))
+}
+
+/** Busca por nombre o ingrediente; todas las palabras deben aparecer. */
+export function searchRecipes(query: string, excluded: string[] = []): Recipe[] {
+  const words = normalize(query).split(/\s+/).filter(Boolean)
+  return allRecipes().filter((r) => {
+    const text = searchableText(r)
+    return isAllowed(r, excluded) && words.every((w) => text.includes(w))
+  })
+}
+
+const unitWords: Record<string, { unit: Ingredient['unit']; factor: number }> = {
+  g: { unit: 'g', factor: 1 }, gr: { unit: 'g', factor: 1 }, gramos: { unit: 'g', factor: 1 }, kg: { unit: 'g', factor: 1000 },
+  ml: { unit: 'ml', factor: 1 }, l: { unit: 'ml', factor: 1000 }, litro: { unit: 'ml', factor: 1000 }, litros: { unit: 'ml', factor: 1000 },
+  ud: { unit: 'ud', factor: 1 }, uds: { unit: 'ud', factor: 1 }, unidad: { unit: 'ud', factor: 1 }, unidades: { unit: 'ud', factor: 1 },
+}
+
+/** Ingredientes escritos a mano, uno por línea: "200 g pollo", "2 huevos", "1 l leche". */
+const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
+
+export function parseIngredientLines(text: string): Ingredient[] {
+  return text
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const m = line.match(/^(\d+(?:[.,]\d+)?)\s*([a-záéíóú]+)?\.?\s+(?:de\s+)?(.+)$/i)
+      if (!m) return { name: capitalize(line), qty: 1, unit: 'ud' as const, section: 'Otros' as const }
+      const qty = Number(m[1].replace(',', '.'))
+      const unit = m[2] ? unitWords[m[2].toLowerCase()] : undefined
+      // "2 huevos": la palabra no es una unidad, forma parte del nombre.
+      const name = unit || !m[2] ? m[3] : `${m[2]} ${m[3]}`
+      return { name: capitalize(name), qty: qty * (unit?.factor ?? 1), unit: unit?.unit ?? 'ud', section: 'Otros' as const }
+    })
 }

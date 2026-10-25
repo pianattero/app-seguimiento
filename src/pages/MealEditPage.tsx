@@ -6,31 +6,42 @@ import { planForDay } from '../lib/dayPlan'
 import { db } from '../lib/db'
 import { formatNumber } from '../lib/format'
 import { mealNutrition, suggestPortions } from '../lib/meals'
-import { recipeById, recipesFor, slotLabel, slotShare, type MealSlot, type Recipe } from '../lib/recipes'
-import { navigate } from '../lib/router'
 import { sessionsInWeek } from '../lib/planner'
+import { getRecipe, recipesFor, searchRecipes, slotLabel, slotShare, type MealSlot, type Recipe } from '../lib/recipes'
+import { navigate } from '../lib/router'
 
-/** Elegir o cambiar la receta de una comida concreta. */
+/** Elegir o cambiar la receta de una comida: sugeridas, buscador y comida libre. */
 export function MealEditPage({ day, slot }: { day: string; slot: MealSlot }) {
   const meal = useLiveQuery(async () => (await db.meals.where('day').equals(day).toArray()).find((m) => m.slot === slot) ?? null, [day, slot])
+  const profile = useLiveQuery(() => db.profile.get('main'))
   const slotKcal = useLiveQuery(async () => {
-    const profile = await db.profile.get('main')
-    if (!profile) return undefined
+    const p = await db.profile.get('main')
+    if (!p) return undefined
     const sessions = await sessionsInWeek(startOfWeek(day))
-    const periods = (await db.periods.toArray()).map((p) => p.start)
-    return planForDay(day, profile, sessions, periods).target.kcal * slotShare[slot]
+    const periods = (await db.periods.toArray()).map((x) => x.start)
+    return planForDay(day, p, sessions, periods).target.kcal * slotShare[slot]
   }, [day, slot])
+  const [query, setQuery] = useState('')
+  const [showAll, setShowAll] = useState(false)
   const [customName, setCustomName] = useState('')
   const [customKcal, setCustomKcal] = useState<number>()
 
-  const back = `#/comidas?w=${startOfWeek(day)}`
-  const recipe = meal?.recipeId ? recipeById.get(meal.recipeId) : undefined
+  const back = `/comidas?w=${startOfWeek(day)}`
+  const recipe = meal?.recipeId ? getRecipe(meal.recipeId) : undefined
+  const excluded = profile?.excludedFoods ?? []
+
+  const forSlot = recipesFor(slot, excluded)
+  // Sugeridas: las que mejor encajan con las calorías de esta comida sin cambiar mucho las raciones.
+  const suggested = slotKcal
+    ? [...forSlot].sort((a, b) => Math.abs(Math.log(slotKcal / a.kcal)) - Math.abs(Math.log(slotKcal / b.kcal))).slice(0, 5)
+    : forSlot.slice(0, 5)
+  const results = query.trim() ? searchRecipes(query, excluded) : []
 
   async function choose(r: Recipe) {
     const portions = slotKcal ? suggestPortions(r, slotKcal) : 1
     if (meal?.id) await db.meals.update(meal.id, { recipeId: r.id, customName: undefined, customKcal: undefined, portions })
     else await db.meals.add({ day, slot, recipeId: r.id, portions })
-    window.location.hash = back
+    navigate(back)
   }
 
   async function saveCustom() {
@@ -38,13 +49,21 @@ export function MealEditPage({ day, slot }: { day: string; slot: MealSlot }) {
     const changes = { recipeId: undefined, customName: customName.trim(), customKcal, portions: 1 }
     if (meal?.id) await db.meals.update(meal.id, changes)
     else await db.meals.add({ day, slot, ...changes })
-    window.location.hash = back
+    navigate(back)
   }
 
   const setPortions = (p: number) => meal?.id && db.meals.update(meal.id, { portions: Math.min(Math.max(p, 0.25), 3) })
+  const option = (r: Recipe) => (
+    <button key={r.id} className={`row row-button recipe-option${r.id === recipe?.id ? ' selected' : ''}`} onClick={() => choose(r)}>
+      <span className="row-main">
+        <span>{r.name}{r.thermomix && slot !== 'desayuno' && slot !== 'merienda' ? ' · Thermomix' : ''}{r.id.startsWith('propia-') ? ' · propia' : ''}</span>
+        <small className="muted">{r.kcal} kcal · {r.proteinG} g proteína · {r.minutes} min</small>
+      </span>
+    </button>
+  )
 
   return (
-    <Page title={slotLabel[slot]} actions={<a className="text-button" href={back}>Menú</a>}>
+    <Page title={slotLabel[slot]} actions={<a className="text-button" href={`#${back}`}>Menú</a>}>
       <p className="muted subtitle">
         {dayTitle(day)}
         {slotKcal ? ` · objetivo de esta comida: unas ${formatNumber(slotKcal)} kcal` : ''}
@@ -66,22 +85,50 @@ export function MealEditPage({ day, slot }: { day: string; slot: MealSlot }) {
               <a className="row row-link" href={`#/receta/${recipe.id}?r=${meal.portions}`}>Ver receta e ingredientes ›</a>
             </>
           )}
-          <button className="row row-button danger" onClick={async () => { await db.meals.delete(meal.id!); navigate(back.slice(1)) }}>
+          <button className="row row-button danger" onClick={async () => { await db.meals.delete(meal.id!); navigate(back) }}>
             Quitar esta comida
           </button>
         </Card>
       )}
 
-      <Card title="Recetas">
-        {recipesFor(slot).map((r) => (
-          <button key={r.id} className={`row row-button recipe-option${r.id === recipe?.id ? ' selected' : ''}`} onClick={() => choose(r)}>
-            <span className="row-main">
-              <span>{r.name}{r.thermomix ? ' · Thermomix' : ''}</span>
-              <small className="muted">{r.kcal} kcal · {r.proteinG} g proteína · {r.minutes} min</small>
-            </span>
-          </button>
-        ))}
-      </Card>
+      <div className="search-box">
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Buscar receta o ingrediente: pollo, lentejas…"
+          aria-label="Buscar receta"
+        />
+      </div>
+
+      {query.trim() ? (
+        <Card
+          title={`Resultados (${results.length})`}
+          footer={excluded.length ? `No se muestran recetas con: ${excluded.join(', ')}.` : undefined}
+        >
+          {results.map(option)}
+          {results.length === 0 && <div className="row muted">No hay recetas con «{query}» en tu recetario.</div>}
+          <a className="row row-link" href={`https://cookidoo.es/search/es-ES?query=${encodeURIComponent(query)}`} target="_blank" rel="noreferrer">
+            Buscar «{query}» en Cookidoo ↗
+          </a>
+          <a className="row row-link" href={`#/receta-nueva?slot=${slot}&nombre=${encodeURIComponent(query)}`}>＋ Crear «{query}» como receta propia</a>
+        </Card>
+      ) : (
+        <>
+          <Card title="Sugeridas" aside="encajan con tus calorías">
+            {suggested.map(option)}
+          </Card>
+          <Card
+            title={`Todas para ${slotLabel[slot].toLowerCase()} (${forSlot.length})`}
+            footer={excluded.length ? `Ocultas por tus filtros: ${excluded.join(', ')}. Cámbialos en «Alimentos que no quieres».` : undefined}
+          >
+            {(showAll ? forSlot : forSlot.slice(0, 8)).map(option)}
+            {!showAll && forSlot.length > 8 && (
+              <button className="row row-button" onClick={() => setShowAll(true)}>Ver las {forSlot.length - 8} restantes</button>
+            )}
+          </Card>
+        </>
+      )}
 
       <Card title="Otra cosa" footer="Para comidas fuera de casa o algo que no está en el recetario. No entra en la lista de la compra.">
         <label className="row">

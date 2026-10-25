@@ -2,7 +2,7 @@ import { addDays, daysOfWeek, type DayString } from './dates'
 import { planForDay } from './dayPlan'
 import { db as defaultDb, type AppDB } from './db'
 import { ensureWeek, sessionsInWeek } from './planner'
-import { mealSlots, recipeById, recipesFor, shopSections, slotShare, type Ingredient, type MealSlot, type Recipe, type ShopSection } from './recipes'
+import { allRecipes, getRecipe, mealSlots, recipesFor, setCustomRecipes, shopSections, slotShare, type Ingredient, type MealSlot, type Recipe, type ShopSection } from './recipes'
 import type { Meal } from './types'
 
 export interface Nutrition {
@@ -16,7 +16,7 @@ const zero: Nutrition = { kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 }
 
 /** Lo que come la usuaria en una comida (sus raciones). */
 export function mealNutrition(meal: Meal): Nutrition {
-  const recipe = meal.recipeId ? recipeById.get(meal.recipeId) : undefined
+  const recipe = meal.recipeId ? getRecipe(meal.recipeId) : undefined
   if (!recipe) return { ...zero, kcal: meal.customKcal ?? 0 }
   return {
     kcal: recipe.kcal * meal.portions,
@@ -40,8 +40,9 @@ export function suggestPortions(recipe: Recipe, slotKcal: number): number {
 }
 
 /** Elige una receta variada para una comida: sin repetir la del día anterior y como mucho 2 veces por semana. */
-export function pickRecipe(slot: MealSlot, usedThisWeek: string[], yesterday: string | undefined, random: () => number): Recipe {
-  const all = recipesFor(slot)
+export function pickRecipe(slot: MealSlot, usedThisWeek: string[], yesterday: string | undefined, random: () => number, excluded: string[] = []): Recipe {
+  const allowed = recipesFor(slot, excluded)
+  const all = allowed.length ? allowed : allRecipes().filter((r) => r.slots.includes(slot))
   const count = (id: string) => usedThisWeek.filter((u) => u === id).length
   const fresh = all.filter((r) => r.id !== yesterday && count(r.id) < 2)
   const pool = fresh.length ? fresh : all
@@ -61,6 +62,7 @@ export async function fillWeek(
   await ensureWeek(weekStart, db)
   const profile = await db.profile.get('main')
   if (!profile) return
+  setCustomRecipes(await db.customRecipes.toArray())
   const sessions = await sessionsInWeek(weekStart, db)
   const periodStarts = (await db.periods.toArray()).map((p) => p.start)
   const weekEnd = addDays(weekStart, 7)
@@ -76,7 +78,7 @@ export async function fillWeek(
       for (const slot of mealSlots) {
         if (existing.some((m) => m.day === day && m.slot === slot)) continue
         const yesterday = existing.find((m) => m.day === addDays(day, -1) && m.slot === slot)?.recipeId
-        const recipe = pickRecipe(slot, used[slot], yesterday, random)
+        const recipe = pickRecipe(slot, used[slot], yesterday, random, profile.excludedFoods)
         const meal: Meal = { day, slot, recipeId: recipe.id, portions: suggestPortions(recipe, target.kcal * slotShare[slot]) }
         await db.meals.add(meal)
         existing.push(meal)
@@ -97,7 +99,7 @@ export interface ShoppingItem {
 export function shoppingList(meals: Meal[], partnerFactor: number): { section: ShopSection; items: ShoppingItem[] }[] {
   const items = new Map<string, ShoppingItem & { section: ShopSection }>()
   for (const meal of meals) {
-    const recipe = meal.recipeId ? recipeById.get(meal.recipeId) : undefined
+    const recipe = meal.recipeId ? getRecipe(meal.recipeId) : undefined
     if (!recipe) continue
     const portions = meal.portions * (1 + partnerFactor)
     for (const ing of recipe.ingredients) {
