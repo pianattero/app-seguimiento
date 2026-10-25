@@ -1,11 +1,10 @@
 import Dexie, { type EntityTable } from 'dexie'
 import type { Recipe } from './recipes'
-import type { Meal, PeriodStart, Profile, Routine, Session, ShoppingCheck, StrengthSet } from './types'
+import type { Meal, PeriodStart, Profile, Session, ShoppingCheck, StrengthSet } from './types'
 
 /** Todos los datos viven en el navegador del móvil (IndexedDB). */
 export class AppDB extends Dexie {
   profile!: EntityTable<Profile, 'id'>
-  routines!: EntityTable<Routine, 'weekdayIndex'>
   sessions!: EntityTable<Session, 'id'>
   sets!: EntityTable<StrengthSet, 'id'>
   meals!: EntityTable<Meal, 'id'>
@@ -29,6 +28,10 @@ export class AppDB extends Dexie {
     this.version(3).stores({
       customRecipes: 'id',
     })
+    // Las rutinas fijas por día se quitaron: los ejercicios se eligen en cada entreno.
+    this.version(4).stores({
+      routines: null,
+    })
   }
 }
 
@@ -46,23 +49,14 @@ export const defaultProfile: Profile = {
   partnerPortionFactor: 1.2,
 }
 
-export const defaultRoutines: Routine[] = [
-  { weekdayIndex: 0, name: 'Fuerza A', exercises: ['Sentadilla', 'Press banca', 'Remo con mancuerna', 'Hip thrust', 'Plancha'] },
-  { weekdayIndex: 2, name: 'Fuerza B', exercises: ['Peso muerto rumano', 'Press militar', 'Jalón al pecho', 'Zancadas', 'Elevaciones de gemelo'] },
-]
-
 export async function seedIfNeeded(database: AppDB = db): Promise<void> {
-  await database.transaction('rw', database.profile, database.routines, async () => {
-    if (!(await database.profile.get('main'))) await database.profile.put(defaultProfile)
-    if ((await database.routines.count()) === 0) await database.routines.bulkPut(defaultRoutines)
-  })
+  if (!(await database.profile.get('main'))) await database.profile.put(defaultProfile)
 }
 
 export interface Backup {
-  version: 1 | 2
+  version: 1 | 2 | 3
   exportedAt: string
   profile: Profile[]
-  routines: Routine[]
   sessions: Session[]
   sets: StrengthSet[]
   meals?: Meal[]
@@ -72,10 +66,9 @@ export interface Backup {
 
 export async function exportBackup(database: AppDB = db): Promise<Backup> {
   return {
-    version: 2,
+    version: 3,
     exportedAt: new Date().toISOString(),
     profile: await database.profile.toArray(),
-    routines: await database.routines.toArray(),
     sessions: await database.sessions.toArray(),
     sets: await database.sets.toArray(),
     meals: await database.meals.toArray(),
@@ -86,12 +79,11 @@ export async function exportBackup(database: AppDB = db): Promise<Backup> {
 
 /** Sustituye todos los datos por los de la copia. */
 export async function importBackup(backup: Backup, database: AppDB = db): Promise<void> {
-  if (backup.version !== 1 && backup.version !== 2) throw new Error('Copia de seguridad no reconocida')
-  const tables = [database.profile, database.routines, database.sessions, database.sets, database.meals, database.periods, database.customRecipes]
+  if (![1, 2, 3].includes(backup.version)) throw new Error('Copia de seguridad no reconocida')
+  const tables = [database.profile, database.sessions, database.sets, database.meals, database.periods, database.customRecipes]
   await database.transaction('rw', tables, async () => {
     await Promise.all(tables.map((t) => t.clear()))
     await database.profile.bulkPut(backup.profile)
-    await database.routines.bulkPut(backup.routines)
     await database.sessions.bulkPut(backup.sessions)
     await database.sets.bulkPut(backup.sets)
     await database.meals.bulkPut(backup.meals ?? [])
