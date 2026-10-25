@@ -91,6 +91,11 @@ export interface Meal {
   /** Comida libre, sin receta. */
   customName?: string
   customKcal?: number
+  customProteinG?: number
+  customCarbsG?: number
+  customFatG?: number
+  /** Ingredientes escritos a mano, de donde salen las kcal de la comida libre. */
+  customIngredients?: string
   /** Raciones para la usuaria; la otra persona come `partnerPortionFactor` veces esto. */
   portions: number
 }

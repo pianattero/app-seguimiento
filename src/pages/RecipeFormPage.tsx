@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { IngredientBreakdown } from '../components/IngredientBreakdown'
 import { Card, NumberInput, Page } from '../components/ui'
 import { db } from '../lib/db'
+import { nutritionFromText } from '../lib/foods'
 import { mealSlots, parseIngredientLines, slotLabel, type MealSlot, type Recipe } from '../lib/recipes'
 
 /** Crear una receta propia, por ejemplo una encontrada en Cookidoo o en internet. */
@@ -17,9 +19,17 @@ export function RecipeFormPage({ params }: { params: URLSearchParams }) {
   const [steps, setSteps] = useState('')
   const [thermomix, setThermomix] = useState('')
   const [error, setError] = useState<string>()
+  // Mientras no se toquen a mano, las kcal y macros salen de los ingredientes.
+  const [manual, setManual] = useState(false)
+  const calc = useMemo(() => nutritionFromText(ingredients), [ingredients])
+  const auto = !manual && calc.kcal > 0
+  const kcalValue = auto ? calc.kcal : kcal
+  const proteinValue = auto ? calc.proteinG : protein
+  const carbsValue = auto ? calc.carbsG : carbs
+  const fatValue = auto ? calc.fatG : fat
 
   async function save() {
-    if (!name.trim() || !kcal || slots.length === 0) {
+    if (!name.trim() || !kcalValue || slots.length === 0) {
       setError('Pon al menos el nombre, las calorías por ración y en qué comidas encaja.')
       return
     }
@@ -28,10 +38,10 @@ export function RecipeFormPage({ params }: { params: URLSearchParams }) {
       id: `propia-${Date.now()}`,
       name: name.trim(),
       slots,
-      kcal,
-      proteinG: protein ?? 0,
-      carbsG: carbs ?? 0,
-      fatG: fat ?? 0,
+      kcal: kcalValue,
+      proteinG: proteinValue ?? 0,
+      carbsG: carbsValue ?? 0,
+      fatG: fatValue ?? 0,
       minutes: minutes ?? 0,
       ingredients: parseIngredientLines(ingredients),
       steps: lines(steps),
@@ -39,6 +49,18 @@ export function RecipeFormPage({ params }: { params: URLSearchParams }) {
     }
     await db.customRecipes.put(recipe)
     history.back()
+  }
+
+  // Al editar un valor a mano se copian los calculados para no perderlos y se deja de recalcular.
+  const editNutrition = (set: (v: number | undefined) => void) => (v: number | undefined) => {
+    if (auto) {
+      setKcal(calc.kcal)
+      setProtein(calc.proteinG)
+      setCarbs(calc.carbsG)
+      setFat(calc.fatG)
+      setManual(true)
+    }
+    set(v)
   }
 
   const numberRow = (label: string, value: number | undefined, set: (v: number | undefined) => void, unit: string) => (
@@ -72,16 +94,25 @@ export function RecipeFormPage({ params }: { params: URLSearchParams }) {
         </div>
       </Card>
 
-      <Card title="Por ración" footer="Si la receta es de Cookidoo, los valores nutricionales vienen en la ficha de la receta.">
-        {numberRow('Calorías', kcal, setKcal, 'kcal')}
-        {numberRow('Proteína', protein, setProtein, 'g')}
-        {numberRow('Hidratos', carbs, setCarbs, 'g')}
-        {numberRow('Grasa', fat, setFat, 'g')}
-        {numberRow('Tiempo', minutes, setMinutes, 'min')}
+      <Card title="Ingredientes por ración" footer="Uno por línea con su cantidad, por ejemplo «150 g pechuga de pollo», «2 huevos» o «1 cucharada de aceite». Las calorías se calculan solas. Van a la lista de la compra en «Otros».">
+        <textarea className="textarea" rows={5} value={ingredients} onChange={(e) => setIngredients(e.target.value)} placeholder={'150 g pechuga de pollo\n1 limón\n60 g arroz\n1 cucharada de aceite de oliva'} aria-label="Ingredientes por ración" />
+        <IngredientBreakdown result={calc} />
       </Card>
 
-      <Card title="Ingredientes por ración" footer="Uno por línea, por ejemplo «150 g pechuga de pollo» o «2 huevos». Van a la lista de la compra en «Otros».">
-        <textarea className="textarea" rows={5} value={ingredients} onChange={(e) => setIngredients(e.target.value)} placeholder={'150 g pechuga de pollo\n1 limón\n60 g arroz'} />
+      <Card
+        title="Por ración"
+        footer={auto ? 'Calculado con los ingredientes. Si cambias un valor a mano, se queda el tuyo.' : 'Si la receta es de Cookidoo, los valores nutricionales vienen en la ficha de la receta.'}
+      >
+        {numberRow('Calorías', kcalValue, editNutrition(setKcal), 'kcal')}
+        {numberRow('Proteína', proteinValue, editNutrition(setProtein), 'g')}
+        {numberRow('Hidratos', carbsValue, editNutrition(setCarbs), 'g')}
+        {numberRow('Grasa', fatValue, editNutrition(setFat), 'g')}
+        {manual && calc.kcal > 0 && (
+          <button className="row row-button" onClick={() => setManual(false)}>
+            Usar el cálculo de los ingredientes ({calc.kcal} kcal)
+          </button>
+        )}
+        {numberRow('Tiempo', minutes, setMinutes, 'min')}
       </Card>
 
       <Card title="Preparación" footer="Un paso por línea. Opcional.">

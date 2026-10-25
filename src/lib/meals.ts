@@ -17,7 +17,9 @@ const zero: Nutrition = { kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 }
 /** Lo que come la usuaria en una comida (sus raciones). */
 export function mealNutrition(meal: Meal): Nutrition {
   const recipe = meal.recipeId ? getRecipe(meal.recipeId) : undefined
-  if (!recipe) return { ...zero, kcal: meal.customKcal ?? 0 }
+  if (!recipe) {
+    return { kcal: meal.customKcal ?? 0, proteinG: meal.customProteinG ?? 0, carbsG: meal.customCarbsG ?? 0, fatG: meal.customFatG ?? 0 }
+  }
   return {
     kcal: recipe.kcal * meal.portions,
     proteinG: recipe.proteinG * meal.portions,
