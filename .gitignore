@@ -1,0 +1,6 @@
+# Se genera con `xcodegen` a partir de project.yml
+*.xcodeproj
+xcuserdata/
+DerivedData/
+build/
+.DS_Store
