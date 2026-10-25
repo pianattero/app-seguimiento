@@ -112,3 +112,14 @@ button.wide { width: 100%; margin-top: 12px; min-height: 48px; }
 .tab-bar a span { font-size: 22px; filter: grayscale(1); opacity: 0.6; }
 .tab-bar a.active { color: var(--accent); }
 .tab-bar a.active span { filter: none; opacity: 1; }
+
+.button-link { display: inline-flex; align-items: center; justify-content: center; flex: 1; min-height: 48px; padding: 10px 16px; border-radius: 10px; background: var(--card); color: var(--accent); white-space: nowrap; }
+.segmented .segment { flex: 1; padding: 8px 4px; text-align: center; border-radius: 8px; }
+.segmented .segment.selected { background: var(--card); font-weight: 600; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
+.recipe-option { color: var(--text); }
+.recipe-option.selected { background: var(--accent-soft); }
+.check-row input { width: 22px; height: 22px; accent-color: var(--accent); flex: none; }
+.check-row.done .row-main { text-decoration: line-through; color: var(--muted); }
+.switch { width: 22px; height: 22px; accent-color: var(--accent); }
+button.text-button { background: none; padding: 0; }
+.tab-bar a { min-width: 56px; }

@@ -1,4 +1,5 @@
 import type { DayString } from './dates'
+import type { MealSlot } from './recipes'
 
 export type Sex = 'female' | 'male'
 export type SessionKind = 'strength' | 'running'
@@ -26,6 +27,12 @@ export interface Profile {
   partnerPortionFactor: number
   /** true cuando la usuaria ya ha revisado sus datos en Ajustes. */
   configured?: boolean
+  /** Ajustar déficit y consejos según la fase del ciclo (por defecto sí). */
+  cycleAdjust?: boolean
+  /** Duración del ciclo cuando aún no hay suficientes reglas registradas. */
+  cycleLengthDays?: number
+  /** Días de regla. */
+  periodLengthDays?: number
 }
 
 /** Rutina de fuerza asignada a un día de la semana (0 = lunes). */
@@ -80,4 +87,26 @@ export const statusLabel: Record<SessionStatus, string> = { planned: 'Pendiente'
 
 export function sessionTitle(s: Session): string {
   return [kindLabel[s.kind], s.routineName, s.isExtra ? 'extra' : undefined].filter(Boolean).join(' · ')
+}
+
+export interface Meal {
+  id?: number
+  day: DayString
+  slot: MealSlot
+  recipeId?: string
+  /** Comida libre, sin receta. */
+  customName?: string
+  customKcal?: number
+  /** Raciones para la usuaria; la otra persona come `partnerPortionFactor` veces esto. */
+  portions: number
+}
+
+/** Primer día de una regla. */
+export interface PeriodStart {
+  start: DayString
+}
+
+export interface ShoppingCheck {
+  key: string
+  checked: boolean
 }
