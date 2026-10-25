@@ -1,20 +1,16 @@
-import { Icon } from '../components/Icon'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useRef, useState } from 'react'
 import { Card, NumberInput, Page, Row } from '../components/ui'
-import { weekdayNames } from '../lib/dates'
 import { db, exportBackup, importBackup, type Backup } from '../lib/db'
 import { formatNumber } from '../lib/format'
 import { bmr, dayTarget, estimatedKcal, floorKcal, portionFactor } from '../lib/nutrition'
-import type { PersonData, Profile, Routine } from '../lib/types'
+import type { PersonData, Profile } from '../lib/types'
 
 export function SettingsPage() {
   const profile = useLiveQuery(() => db.profile.get('main'))
-  const routines = useLiveQuery(() => db.routines.orderBy('weekdayIndex').toArray()) ?? []
   return (
     <Page title="Ajustes">
       {profile && <ProfileForm profile={profile} />}
-      {routines.map((r) => <RoutineEditor key={r.weekdayIndex} routine={r} />)}
       <Card title="Apple Watch">
         <a className="row row-link" href="#/atajo">Cómo enviar los entrenos con un Atajo ›</a>
       </Card>
@@ -88,45 +84,6 @@ function ProfileForm({ profile }: { profile: Profile }) {
         <Row label="Sugerido según sus datos" value={formatNumber(suggested, 1)} />
       </Card>
     </>
-  )
-}
-
-function RoutineEditor({ routine }: { routine: Routine }) {
-  const [newName, setNewName] = useState('')
-  const save = (changes: Partial<Routine>) => db.routines.update(routine.weekdayIndex, changes)
-  const move = (i: number, delta: number) => {
-    const list = [...routine.exercises]
-    const [item] = list.splice(i, 1)
-    list.splice(i + delta, 0, item)
-    save({ exercises: list })
-  }
-  return (
-    <Card title={`Rutina del ${weekdayNames[routine.weekdayIndex].toLowerCase()}`}>
-      <label className="row">
-        <span>Nombre</span>
-        <input className="text-input" value={routine.name} onChange={(e) => save({ name: e.target.value })} />
-      </label>
-      {routine.exercises.map((name, i) => (
-        <div className="row" key={name}>
-          <span className="row-main">{name}</span>
-          <button className="icon-button" aria-label={`Subir ${name}`} disabled={i === 0} onClick={() => move(i, -1)}><Icon name="up" /></button>
-          <button className="icon-button" aria-label={`Bajar ${name}`} disabled={i === routine.exercises.length - 1} onClick={() => move(i, 1)}><Icon name="down" /></button>
-          <button className="icon-button danger" aria-label={`Quitar ${name}`} onClick={() => save({ exercises: routine.exercises.filter((e) => e !== name) })}><Icon name="close" /></button>
-        </div>
-      ))}
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault()
-          const name = newName.trim()
-          if (name && !routine.exercises.includes(name)) save({ exercises: [...routine.exercises, name] })
-          setNewName('')
-        }}
-      >
-        <input className="text-input grow" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Nuevo ejercicio" aria-label="Nuevo ejercicio" />
-        <button type="submit">Añadir</button>
-      </form>
-    </Card>
   )
 }
 

@@ -9,15 +9,13 @@ export function sessionsInWeek(weekStart: string, db: AppDB = defaultDb): Promis
 
 /** Añade las sesiones de la plantilla que falten en la semana. */
 export async function ensureWeek(weekStart: string, db: AppDB = defaultDb): Promise<void> {
-  await db.transaction('rw', db.sessions, db.routines, async () => {
+  await db.transaction('rw', db.sessions, async () => {
     const existing = await sessionsInWeek(weekStart, db)
-    const routines = await db.routines.toArray()
     for (const [index, day] of daysOfWeek(weekStart).entries()) {
       const kind = weekPlan[index]
       if (!kind) continue
       if (existing.some((s) => s.day === day && s.kind === kind && !s.isExtra)) continue
-      const routineName = kind === 'strength' ? routines.find((r) => r.weekdayIndex === index)?.name : undefined
-      await db.sessions.add({ day, kind, status: 'planned', isExtra: false, routineName })
+      await db.sessions.add({ day, kind, status: 'planned', isExtra: false })
     }
   })
 }

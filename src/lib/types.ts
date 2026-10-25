@@ -37,20 +37,12 @@ export interface Profile {
   excludedFoods?: string[]
 }
 
-/** Rutina de fuerza asignada a un día de la semana (0 = lunes). */
-export interface Routine {
-  weekdayIndex: number
-  name: string
-  exercises: string[]
-}
-
 export interface Session {
   id?: number
   day: DayString
   kind: SessionKind
   status: SessionStatus
   isExtra: boolean
-  routineName?: string
   /** Identificador del entreno importado, para no duplicarlo si se importa dos veces. */
   externalId?: string
   startedAt?: string
@@ -88,7 +80,7 @@ export const kindLabel: Record<SessionKind, string> = { strength: 'Fuerza', runn
 export const statusLabel: Record<SessionStatus, string> = { planned: 'Pendiente', done: 'Hecho', skipped: 'Saltado' }
 
 export function sessionTitle(s: Session): string {
-  return [kindLabel[s.kind], s.routineName, s.isExtra ? 'extra' : undefined].filter(Boolean).join(' · ')
+  return [kindLabel[s.kind], s.isExtra ? 'extra' : undefined].filter(Boolean).join(' · ')
 }
 
 export interface Meal {

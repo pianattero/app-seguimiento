@@ -22,7 +22,6 @@ describe('planificación semanal', () => {
     await ensureWeek(monday, db)
     const sessions = await sessionsInWeek(monday, db)
     expect(sessions.map((s) => s.kind)).toEqual(['strength', 'running', 'strength', 'running'])
-    expect(sessions[0].routineName).toBe('Fuerza A')
   })
 
   it('asigna el running del martes y crea un extra el sábado, sin duplicar', async () => {

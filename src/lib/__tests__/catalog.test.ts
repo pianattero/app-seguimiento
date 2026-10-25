@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
+import { searchExercises } from '../exercises'
 import { pickRecipe } from '../meals'
 import { allRecipes, getRecipe, isAllowed, parseIngredientLines, recipesFor, searchRecipes, setCustomRecipes } from '../recipes'
 import type { Recipe } from '../recipes'
@@ -72,5 +73,13 @@ describe('ingredientes escritos a mano', () => {
       [1000, 'ml', 'Leche'],
       [1, 'ud', 'Sal'],
     ])
+  })
+})
+
+describe('ejercicios', () => {
+  it('busca sin tildes y pone primero los ya usados', () => {
+    expect(searchExercises('gluteo', [])).toContain('Puente de glúteo')
+    expect(searchExercises('press', ['Press con banda'])[0]).toBe('Press con banda')
+    expect(searchExercises('sentadilla bulgara', [])).toEqual(['Sentadilla búlgara'])
   })
 })

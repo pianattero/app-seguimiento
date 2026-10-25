@@ -2,10 +2,12 @@ import { Icon } from '../components/Icon'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
 import { Card, NumberInput, Page, Row } from '../components/ui'
-import { dayTitle, startOfWeek, weekdayIndex } from '../lib/dates'
+import { dayTitle } from '../lib/dates'
 import { db } from '../lib/db'
+import { exerciseGroups, searchExercises } from '../lib/exercises'
 import { formatDuration, formatKg, formatPace } from '../lib/format'
 import { addSet, deleteSession } from '../lib/planner'
+import { normalize } from '../lib/recipes'
 import { navigate } from '../lib/router'
 import { sessionTitle, statusLabel, type Session, type SessionStatus, type StrengthSet } from '../lib/types'
 
@@ -40,7 +42,7 @@ export function SessionPage({ id }: { id: number }) {
 
       {session.isExtra && <DeleteButton onDelete={async () => {
         await deleteSession(id)
-        navigate(`/semana?w=${startOfWeek(session.day)}`)
+        navigate(`/semana?d=${session.day}`)
       }} />}
     </Page>
   )
@@ -94,16 +96,9 @@ function RunDetails({ session, update }: { session: Session; update: (c: Partial
 
 function StrengthLog({ session }: { session: Session }) {
   const id = session.id!
-  const [added, setAdded] = useState<string[]>([])
-  const [newName, setNewName] = useState('')
   const sets = useLiveQuery(() => db.sets.where('sessionId').equals(id).sortBy('order'), [id]) ?? []
-  const routine = useLiveQuery(async () => {
-    const all = await db.routines.toArray()
-    return all.find((r) => r.name === session.routineName) ?? all.find((r) => r.weekdayIndex === weekdayIndex(session.day))
-  }, [session.routineName, session.day])
-
-  const names = [...(routine?.exercises ?? [])]
-  for (const n of [...sets.map((s) => s.exerciseName), ...added]) if (!names.includes(n)) names.push(n)
+  const names: string[] = []
+  for (const s of sets) if (!names.includes(s.exerciseName)) names.push(s.exerciseName)
 
   return (
     <>
@@ -111,22 +106,82 @@ function StrengthLog({ session }: { session: Session }) {
       {names.map((name) => (
         <ExerciseCard key={name} sessionId={id} name={name} sets={sets.filter((s) => s.exerciseName === name)} />
       ))}
-      <form
-        className="add-exercise"
-        onSubmit={(e) => {
-          e.preventDefault()
-          const name = newName.trim()
-          if (name && !names.includes(name)) setAdded([...added, name])
-          setNewName('')
-        }}
-      >
-        <input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Otro ejercicio" aria-label="Nombre del ejercicio" />
-        <button type="submit">Añadir</button>
-      </form>
-      {session.status !== 'done' && (
+      <ExercisePicker inSession={names} onPick={(name) => addSet(id, name)} />
+      {session.status !== 'done' && names.length > 0 && (
         <button className="primary wide" onClick={() => db.sessions.update(id, { status: 'done' })}>Terminar entreno</button>
       )}
     </>
+  )
+}
+
+/** Selector de ejercicios: recientes, por grupo muscular o buscando; lo que no está se puede escribir a mano. */
+function ExercisePicker({ inSession, onPick }: { inSession: string[]; onPick: (name: string) => void }) {
+  const [query, setQuery] = useState('')
+  const [group, setGroup] = useState(exerciseGroups[0].group)
+  // Nombres usados en entrenos anteriores, del más reciente al más antiguo.
+  const used = useLiveQuery(async () => [...new Set((await db.sets.orderBy('createdAt').reverse().toArray()).map((s) => s.exerciseName))]) ?? []
+  const available = (list: string[]) => list.filter((n) => !inSession.includes(n))
+  const pick = (name: string) => {
+    onPick(name)
+    setQuery('')
+  }
+  const typed = query.trim()
+  const matches = typed ? available(searchExercises(typed, used)).slice(0, 8) : []
+  const exact = [...used, ...exerciseGroups.flatMap((g) => g.exercises)].some((n) => normalize(n) === normalize(typed))
+  const recent = available(used).slice(0, 8)
+
+  return (
+    <Card title={inSession.length ? 'Añadir otro ejercicio' : 'Elige el primer ejercicio'}>
+      <form
+        className="search-box inset"
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (matches[0] && normalize(matches[0]) === normalize(typed)) pick(matches[0])
+          else if (typed) pick(typed.charAt(0).toUpperCase() + typed.slice(1))
+        }}
+      >
+        <Icon name="search" />
+        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Busca o escribe un ejercicio" aria-label="Buscar ejercicio" />
+      </form>
+      {typed ? (
+        <>
+          {matches.map((name) => (
+            <button key={name} className="row row-button" onClick={() => pick(name)}>{name}</button>
+          ))}
+          {!exact && (
+            <button className="row row-button" onClick={() => pick(typed.charAt(0).toUpperCase() + typed.slice(1))}>
+              <Icon name="plus" className="row-icon" /> Añadir «{typed}»
+            </button>
+          )}
+        </>
+      ) : (
+        <>
+          {recent.length > 0 && (
+            <>
+              <div className="picker-label">Recientes</div>
+              <div className="chips">
+                {recent.map((name) => <button key={name} className="chip" onClick={() => pick(name)}>{name}</button>)}
+              </div>
+            </>
+          )}
+          <div className="picker-label">Por grupo</div>
+          <div className="chips group-tabs" role="tablist">
+            {exerciseGroups.map((g) => (
+              <button key={g.group} role="tab" aria-selected={g.group === group} className={`chip${g.group === group ? ' selected' : ''}`} onClick={() => setGroup(g.group)}>
+                {g.group}
+              </button>
+            ))}
+          </div>
+          <div className="chips">
+            {available(exerciseGroups.find((g) => g.group === group)!.exercises).map((name) => (
+              <button key={name} className="chip chip-soft" onClick={() => pick(name)}>
+                <Icon name="plus" className="inline-icon" /> {name}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </Card>
   )
 }
 
