@@ -20,6 +20,16 @@ export function TodayPage() {
 
   return (
     <Page title={dayTitle(day)}>
+      {profile && !profile.configured && (
+        <Card>
+          <a className="row row-link" href="#/ajustes">
+            <span className="row-main">
+              <strong>Completa tus datos</strong>
+              <small className="muted">Peso, altura y edad, para calcular bien tus calorías ›</small>
+            </span>
+          </a>
+        </Card>
+      )}
       <Card title="Entreno de hoy">
         {sessions?.length === 0 && <div className="row muted">Descanso 😴</div>}
         {sessions?.map((s) => <SessionRow key={s.id} session={s} setCount={setCounts?.[s.id!]} />)}

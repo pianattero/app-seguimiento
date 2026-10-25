@@ -21,14 +21,15 @@ export class AppDB extends Dexie {
 
 export const db = new AppDB()
 
+/** Valores genéricos: los datos reales se escriben en Ajustes (el repositorio es público). */
 export const defaultProfile: Profile = {
   id: 'main',
-  name: 'Pia',
-  person: { sex: 'female', ageYears: 27, weightKg: 88.5, heightCm: 170 },
+  name: '',
+  person: { sex: 'female', ageYears: 30, weightKg: 70, heightCm: 165 },
   deficitKcal: 500,
   proteinPerKg: 1.5,
   partnerName: 'Acompañante',
-  partner: { sex: 'male', ageYears: 30, weightKg: 90, heightCm: 172 },
+  partner: { sex: 'male', ageYears: 30, weightKg: 80, heightCm: 175 },
   partnerPortionFactor: 1.2,
 }
 

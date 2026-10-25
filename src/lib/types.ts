@@ -24,6 +24,8 @@ export interface Profile {
   partner: PersonData
   /** Raciones de la segunda persona por cada ración de la usuaria. */
   partnerPortionFactor: number
+  /** true cuando la usuaria ya ha revisado sus datos en Ajustes. */
+  configured?: boolean
 }
 
 /** Rutina de fuerza asignada a un día de la semana (0 = lunes). */

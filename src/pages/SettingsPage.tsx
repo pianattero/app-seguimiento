@@ -42,7 +42,7 @@ function PersonFields({ person, onChange }: { person: PersonData; onChange: (p: 
 }
 
 function ProfileForm({ profile }: { profile: Profile }) {
-  const save = (changes: Partial<Profile>) => db.profile.update('main', changes)
+  const save = (changes: Partial<Profile>) => db.profile.update('main', { ...changes, configured: true })
   const target = (kcal: number) => dayTarget(profile.person, kcal, profile.deficitKcal, profile.proteinPerKg).kcal
   const suggested = portionFactor(profile.partner, profile.person, profile.deficitKcal)
   return (

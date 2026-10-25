@@ -17,7 +17,7 @@ Los datos se guardan en el navegador del móvil (IndexedDB). Conviene usar la ap
 
 Calorías del día = metabolismo basal (Mifflin-St Jeor) × 1,2 + 85 % de las calorías del entreno − déficit. Sin datos del Watch se estiman 300 kcal para fuerza y 400 kcal para running. Nunca baja de 1.500 kcal (1.800 en hombres).
 
-Con los datos de partida (88,5 kg, 170 cm, 27 años, déficit de 500 kcal): 1.500 kcal en descanso, unas 1.740 en fuerza y unas 1.820 en running, con unos 133 g de proteína.
+Los datos personales no están en el código: se escriben en Ajustes la primera vez y se quedan en el móvil.
 
 ## Desarrollo
 
