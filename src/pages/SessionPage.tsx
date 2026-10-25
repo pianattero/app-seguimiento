@@ -1,3 +1,4 @@
+import { Icon } from '../components/Icon'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
 import { Card, NumberInput, Page, Row } from '../components/ui'
@@ -17,7 +18,7 @@ export function SessionPage({ id }: { id: number }) {
   return (
     <Page
       title={sessionTitle(session)}
-      actions={<a className="text-button" href={`#/semana?w=${startOfWeek(session.day)}`}>Semana</a>}
+      actions={<a className="text-button" href={`#/semana?d=${session.day}`}>Entrenos</a>}
     >
       <p className="muted subtitle">{dayTitle(session.day)}</p>
 
@@ -143,10 +144,10 @@ function ExerciseCard({ sessionId, name, sets }: { sessionId: number; name: stri
           <span className="unit">reps</span>
           <NumberInput className="num-input small" ariaLabel={`Kilos serie ${i + 1}`} value={set.weightKg} onChange={(v) => db.sets.update(set.id!, { weightKg: v ?? 0 })} />
           <span className="unit">kg</span>
-          <button className="icon-button danger" aria-label={`Borrar serie ${i + 1}`} onClick={() => db.sets.delete(set.id!)}>×</button>
+          <button className="icon-button danger" aria-label={`Borrar serie ${i + 1}`} onClick={() => db.sets.delete(set.id!)}><Icon name="close" /></button>
         </div>
       ))}
-      <button className="row row-button" onClick={() => addSet(sessionId, name)}>+ Añadir serie</button>
+      <button className="row row-button" onClick={() => addSet(sessionId, name)}><Icon name="plus" className="row-icon" /> Añadir serie</button>
     </Card>
   )
 }

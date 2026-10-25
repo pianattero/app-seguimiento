@@ -5,7 +5,7 @@ App web para el móvil que sigue los entrenos de la semana (fuerza lunes y miér
 ## Fase 1 (esta versión)
 
 - **Hoy**: el entreno del día y el objetivo de calorías y macros, que cambia según el entreno.
-- **Entrenos**: la semana de lunes a domingo con la plantilla fija, resumen de entrenos hechos, kilómetros y series. Se pueden añadir entrenos extra.
+- **Entrenos**: calendario del mes con la fuerza en amarillo y el running en rosa (relleno si está hecho, claro si está pendiente). Al tocar un día se ven sus entrenos; abajo, resumen de la semana con entrenos hechos, kilómetros y series. Se pueden añadir entrenos extra.
 - **Registro de fuerza**: ejercicios de la rutina del día, series con repeticiones y kg. Cada serie nueva se rellena con el peso de la última vez, y se muestra el récord de cada ejercicio.
 - **Running**: distancia, tiempo, ritmo, pulso y calorías, importados del Watch o escritos a mano.
 - **Importar del Apple Watch**: un Atajo del iPhone abre `#/importar?...` con los datos del último entreno; la app los enseña y los guarda al confirmar. Las instrucciones están en la propia app (Ajustes > Cómo enviar los entrenos con un Atajo).
@@ -18,7 +18,7 @@ App web para el móvil que sigue los entrenos de la semana (fuerza lunes y miér
 - **Buscador**: al tocar una comida se ven sugerencias según las calorías de ese hueco y un buscador por nombre o ingrediente. Si no está en el recetario, se puede buscar en Cookidoo o crear como receta propia (con sus ingredientes, que entran en la lista de la compra).
 - **No me gusta**: alimentos o grupos (curry, pescado, lácteos...) que el menú y las sugerencias evitan.
 - **Lista de la compra**: suma los ingredientes del menú de 1 o 2 semanas para las dos personas, agrupados por sección, con casillas para ir tachando.
-- **Ciclo**: calendario mensual con las fases en colores; tocar un día lo marca como inicio de regla. Registro de reglas a mano o con el Atajo «Enviar ciclo» (`#/ciclo/importar?dias=...`), fase y día del ciclo, previsión de la próxima regla y consejos de comida y entreno. En la fase lútea el déficit baja 150 kcal (se puede desactivar).
+- **Ciclo**: calendario mensual con las fases en colores; tocar un día lo marca como inicio de regla. El inicio de cada regla se apunta a mano. Muestra fase y día del ciclo, previsión de la próxima regla y consejos de comida y entreno. En la fase lútea el déficit baja 150 kcal (se puede desactivar).
 
 Los datos se guardan en el navegador del móvil (IndexedDB). Conviene usar la app siempre desde Safari (no desde la pantalla de inicio, porque el Atajo abre Safari) y descargar una copia de seguridad de vez en cuando.
 

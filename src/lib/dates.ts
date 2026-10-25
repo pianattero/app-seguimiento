@@ -58,3 +58,20 @@ export function daysBetween(from: DayString, to: DayString): number {
   }
   return Math.round((utc(to) - utc(from)) / 86_400_000)
 }
+
+const monthFormat = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' })
+
+/** Mes ("2026-10") en forma de calendario: semanas completas de lunes a domingo, meses vecinos y título. */
+export function monthGrid(month: string): { days: DayString[]; prev: string; next: string; title: string } {
+  const first = parseDay(`${month}-01`)
+  const gridStart = startOfWeek(`${month}-01`)
+  const last = toDayString(new Date(first.getFullYear(), first.getMonth() + 1, 0))
+  const weeks = Math.ceil((daysBetween(gridStart, last) + 1) / 7)
+  const title = monthFormat.format(first)
+  return {
+    days: Array.from({ length: weeks * 7 }, (_, i) => addDays(gridStart, i)),
+    prev: toDayString(new Date(first.getFullYear(), first.getMonth() - 1, 1)).slice(0, 7),
+    next: toDayString(new Date(first.getFullYear(), first.getMonth() + 1, 1)).slice(0, 7),
+    title: title.charAt(0).toUpperCase() + title.slice(1),
+  }
+}

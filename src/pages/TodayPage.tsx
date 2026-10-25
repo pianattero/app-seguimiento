@@ -1,3 +1,4 @@
+import { Icon } from '../components/Icon'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Card, Page, Row, SessionRow } from '../components/ui'
 import { phaseInfo } from '../lib/cycle'
@@ -38,7 +39,7 @@ export function TodayPage() {
       )}
 
       <Card title="Entreno de hoy">
-        {sessions?.length === 0 && <div className="row muted">Descanso 😴</div>}
+        {sessions?.length === 0 && <div className="row muted"><Icon name="rest" className="row-icon" /> Descanso</div>}
         {sessions?.map((s) => <SessionRow key={s.id} session={s} setCount={setCounts?.[s.id!]} />)}
       </Card>
 

@@ -1,3 +1,4 @@
+import { Icon } from '../components/Icon'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useRef, useState } from 'react'
 import { Card, NumberInput, Page, Row } from '../components/ui'
@@ -108,9 +109,9 @@ function RoutineEditor({ routine }: { routine: Routine }) {
       {routine.exercises.map((name, i) => (
         <div className="row" key={name}>
           <span className="row-main">{name}</span>
-          <button className="icon-button" aria-label={`Subir ${name}`} disabled={i === 0} onClick={() => move(i, -1)}>↑</button>
-          <button className="icon-button" aria-label={`Bajar ${name}`} disabled={i === routine.exercises.length - 1} onClick={() => move(i, 1)}>↓</button>
-          <button className="icon-button danger" aria-label={`Quitar ${name}`} onClick={() => save({ exercises: routine.exercises.filter((e) => e !== name) })}>×</button>
+          <button className="icon-button" aria-label={`Subir ${name}`} disabled={i === 0} onClick={() => move(i, -1)}><Icon name="up" /></button>
+          <button className="icon-button" aria-label={`Bajar ${name}`} disabled={i === routine.exercises.length - 1} onClick={() => move(i, 1)}><Icon name="down" /></button>
+          <button className="icon-button danger" aria-label={`Quitar ${name}`} onClick={() => save({ exercises: routine.exercises.filter((e) => e !== name) })}><Icon name="close" /></button>
         </div>
       ))}
       <form

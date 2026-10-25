@@ -1,3 +1,4 @@
+import { Icon } from './Icon'
 import { useEffect, useState, type ReactNode } from 'react'
 import { parseQuantity } from '../lib/importer'
 import { sessionTitle, statusLabel, type Session, type SessionStatus } from '../lib/types'
@@ -54,7 +55,7 @@ export function SessionRow({ session, setCount }: { session: Session; setCount?:
   return (
     <a className="row row-link" href={`#/sesion/${session.id}`}>
       <span className={`kind-icon kind-${session.kind}`} aria-hidden>
-        {session.kind === 'strength' ? '🏋️' : '🏃‍♀️'}
+        <Icon name={session.kind === 'strength' ? 'dumbbell' : 'run'} />
       </span>
       <span className="row-main">
         <strong>{sessionTitle(session)}</strong>

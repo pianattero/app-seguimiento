@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { defaultProfile } from '../db'
-import { averageCycleLength, cycleInfo, deficitFor, periodStartsFromFlowDays } from '../cycle'
+import { averageCycleLength, cycleInfo, deficitFor } from '../cycle'
 
 describe('ciclo menstrual', () => {
   it('calcula la duración media con los ciclos registrados', () => {
@@ -26,9 +26,5 @@ describe('ciclo menstrual', () => {
     expect(deficitFor(defaultProfile, lutea)).toBe(350)
     expect(deficitFor({ ...defaultProfile, cycleAdjust: false }, lutea)).toBe(500)
     expect(deficitFor(defaultProfile, cycleInfo('2026-10-08', ['2026-10-01']))).toBe(500)
-  })
-
-  it('saca los días de inicio de los días con regla', () => {
-    expect(periodStartsFromFlowDays(['2026-09-29', '2026-09-30', '2026-10-01', '2026-10-27', '2026-10-28', '2026-09-28'])).toEqual(['2026-09-28', '2026-10-27'])
   })
 })
