@@ -1,5 +1,6 @@
+import { Icon, type IconName } from './components/Icon'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { useEffect, type ReactNode } from 'react'
+import { useEffect } from 'react'
 import { startOfWeek, today } from './lib/dates'
 import { db, seedIfNeeded } from './lib/db'
 import { dismissDbError, useDbStatus } from './lib/dbStatus'
@@ -7,7 +8,6 @@ import { ensureWeek } from './lib/planner'
 import { setCustomRecipes, type MealSlot } from './lib/recipes'
 import { useRoute } from './lib/router'
 import { ImportPage } from './pages/ImportPage'
-import { CycleImportPage } from './pages/CycleImportPage'
 import { CyclePage } from './pages/CyclePage'
 import { MealEditPage } from './pages/MealEditPage'
 import { MealsPage } from './pages/MealsPage'
@@ -29,34 +29,7 @@ const tabs = [
   { key: 'ajustes', label: 'Ajustes' },
 ]
 
-/** Iconos de línea para la barra inferior (24×24). */
-const tabIcons: Record<string, ReactNode> = {
-  hoy: (
-    <>
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-    </>
-  ),
-  semana: (
-    <>
-      <path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11" />
-    </>
-  ),
-  comidas: (
-    <>
-      <path d="M3 12h18a9 9 0 0 1-18 0Z" />
-      <path d="M8 8c0-2 2-2 2-4M13 8c0-2 2-2 2-4" />
-    </>
-  ),
-  ciclo: <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" />,
-  ajustes: (
-    <>
-      <path d="M4 7h10M18 7h2M4 17h4M12 17h8" />
-      <circle cx="16" cy="7" r="2" />
-      <circle cx="10" cy="17" r="2" />
-    </>
-  ),
-}
+const tabIcons: Record<string, IconName> = { hoy: 'sun', semana: 'dumbbell', comidas: 'bowl', ciclo: 'moon', ajustes: 'sliders' }
 
 const tabFor: Record<string, string> = { sesion: 'semana', importar: 'semana', atajo: 'ajustes', comida: 'comidas', receta: 'comidas', compra: 'comidas', 'receta-nueva': 'comidas', preferencias: 'comidas' }
 
@@ -73,7 +46,12 @@ export default function App() {
   let page
   switch (section) {
     case 'semana':
-      page = <WeekPage weekStart={startOfWeek(params.get('w') ?? today())} />
+      {
+        // "?d=" abre un día concreto; "?w=" (enlaces antiguos) abre el lunes de esa semana.
+        const day = params.get('d') ?? params.get('w') ?? undefined
+        const month = params.get('m') ?? (day ?? today()).slice(0, 7)
+        page = <WeekPage key={params.toString()} month={month} selected={day ?? (params.get('m') ? undefined : today())} />
+      }
       break
     case 'sesion':
       page = <SessionPage id={Number(path[1])} />
@@ -100,7 +78,7 @@ export default function App() {
       page = <ShoppingPage weekStart={startOfWeek(params.get('w') ?? today())} weeks={params.get('semanas') === '2' ? 2 : 1} />
       break
     case 'ciclo':
-      page = path[1] === 'importar' ? <CycleImportPage params={params} /> : <CyclePage month={params.get('m') ?? undefined} />
+      page = <CyclePage month={params.get('m') ?? undefined} />
       break
     case 'ajustes':
       page = <SettingsPage />
@@ -120,7 +98,7 @@ export default function App() {
       <nav className="tab-bar">
         {tabs.map((t) => (
           <a key={t.key} href={`#/${t.key}`} className={activeTab === t.key ? 'active' : ''}>
-            <svg viewBox="0 0 24 24" aria-hidden="true">{tabIcons[t.key]}</svg>
+            <Icon name={tabIcons[t.key]} />
             <span>{t.label}</span>
           </a>
         ))}

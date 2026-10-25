@@ -79,11 +79,3 @@ export function deficitFor(profile: Profile, cycle: CycleInfo | undefined): numb
   return Math.max(profile.deficitKcal - phaseInfo[cycle.phase].extraKcal, 0)
 }
 
-/**
- * Convierte días con regla (por ejemplo, las muestras de "Menstruación" de Salud) en días de inicio:
- * un día es inicio si no hubo regla en los 2 días anteriores.
- */
-export function periodStartsFromFlowDays(days: DayString[]): DayString[] {
-  const set = new Set(days)
-  return [...set].sort().filter((d) => !set.has(addDays(d, -1)) && !set.has(addDays(d, -2)))
-}

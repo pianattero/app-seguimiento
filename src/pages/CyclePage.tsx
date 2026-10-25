@@ -1,8 +1,9 @@
+import { Icon } from '../components/Icon'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
 import { Card, NumberInput, Page, Row } from '../components/ui'
 import { cycleFor, phaseInfo, type CyclePhase } from '../lib/cycle'
-import { addDays, dayTitle, daysBetween, parseDay, startOfWeek, today, toDayString } from '../lib/dates'
+import { dayTitle, daysBetween, monthGrid, parseDay, today } from '../lib/dates'
 import { db } from '../lib/db'
 import type { Profile } from '../lib/types'
 
@@ -31,7 +32,7 @@ export function CyclePage({ month }: { month?: string }) {
         </>
       ) : (
         <Card>
-          <div className="row prose">Apunta el primer día de tu última regla para calcular las fases, o envíalo desde Salud con el Atajo de abajo.</div>
+          <div className="row prose">Toca en el calendario el primer día de tu última regla, o escríbelo abajo, para calcular las fases.</div>
         </Card>
       )}
 
@@ -49,25 +50,13 @@ export function CyclePage({ month }: { month?: string }) {
         {periods.map((p) => (
           <div className="row" key={p.start}>
             <span className="row-main">{dayTitle(p.start)}</span>
-            <button className="icon-button danger" aria-label={`Borrar ${p.start}`} onClick={() => db.periods.delete(p.start)}>×</button>
+            <button className="icon-button danger" aria-label={`Borrar ${p.start}`} onClick={() => db.periods.delete(p.start)}><Icon name="close" /></button>
           </div>
         ))}
       </Card>
 
       {profile && <CycleSettings profile={profile} />}
 
-      <Card title="Traer el ciclo desde Salud" footer="Si un paso no aparece igual en tu iPhone, dímelo y lo adaptamos.">
-        <ol className="steps">
-          <li>En <b>Atajos</b>, crea uno nuevo llamado «Enviar ciclo».</li>
-          <li>Añade <b>Buscar muestras de salud</b>: tipo <b>Menstruación</b>, fecha de inicio <b>en los últimos 6 meses</b>.</li>
-          <li>Añade <b>Repetir con cada elemento</b> y dentro <b>Formatear fecha</b> (la Fecha de inicio) con formato personalizado <code>yyyy-MM-dd</code>.</li>
-          <li>Después del bloque, añade <b>Combinar texto</b> con el resultado, separado por comas.</li>
-          <li>
-            Añade <b>Texto</b> con esta dirección, cambiando FECHAS por el texto combinado, y luego <b>Abrir URL</b>:
-            <code className="code">{`${window.location.origin}${window.location.pathname}#/ciclo/importar?dias=FECHAS`}</code>
-          </li>
-        </ol>
-      </Card>
     </Page>
   )
 }
@@ -98,31 +87,22 @@ function CycleSettings({ profile }: { profile: Profile }) {
   )
 }
 
-const monthFormat = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' })
 const phaseClass: Record<CyclePhase, string> = { menstrual: 'ph-menstrual', folicular: 'ph-folicular', ovulatoria: 'ph-ovulatoria', lutea: 'ph-lutea' }
 
 /** Calendario del mes con la fase de cada día. Tocar un día permite marcar o quitar el inicio de la regla. */
 function CycleCalendar({ month, profile, starts }: { month: string; profile: Profile; starts: string[] }) {
   const [selected, setSelected] = useState<string>()
-  const first = `${month}-01`
-  const firstDate = parseDay(first)
-  const prevMonth = toDayString(new Date(firstDate.getFullYear(), firstDate.getMonth() - 1, 1)).slice(0, 7)
-  const nextMonth = toDayString(new Date(firstDate.getFullYear(), firstDate.getMonth() + 1, 1)).slice(0, 7)
-  const gridStart = startOfWeek(first)
-  const lastOfMonth = toDayString(new Date(firstDate.getFullYear(), firstDate.getMonth() + 1, 0))
-  const weeks = Math.ceil((daysBetween(gridStart, lastOfMonth) + 1) / 7)
-  const days = Array.from({ length: weeks * 7 }, (_, i) => addDays(gridStart, i))
+  const { days, prev: prevMonth, next: nextMonth, title } = monthGrid(month)
   const periodLength = profile.periodLengthDays ?? 5
   const isRecordedPeriod = (day: string) => starts.some((s) => { const d = daysBetween(s, day); return d >= 0 && d < periodLength })
   const sel = selected ? cycleFor(selected, profile, starts) : undefined
-  const title = monthFormat.format(firstDate)
 
   return (
     <>
       <div className="month-nav">
-        <a className="icon-button" href={`#/ciclo?m=${prevMonth}`} aria-label="Mes anterior">‹</a>
-        <h2>{title.charAt(0).toUpperCase() + title.slice(1)}</h2>
-        <a className="icon-button" href={`#/ciclo?m=${nextMonth}`} aria-label="Mes siguiente">›</a>
+        <a className="icon-button" href={`#/ciclo?m=${prevMonth}`} aria-label="Mes anterior"><Icon name="left" /></a>
+        <h2>{title}</h2>
+        <a className="icon-button" href={`#/ciclo?m=${nextMonth}`} aria-label="Mes siguiente"><Icon name="right" /></a>
       </div>
       <div className="month-grid" role="grid" aria-label={`Ciclo de ${title}`}>
         {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((d) => <div key={d} className="month-head">{d}</div>)}

@@ -1,3 +1,4 @@
+import { Icon } from '../components/Icon'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
 import { Card, NumberInput, Page, Row } from '../components/ui'
@@ -77,9 +78,9 @@ export function MealEditPage({ day, slot }: { day: string; slot: MealSlot }) {
               <div className="row">
                 <span>Tus raciones</span>
                 <span className="row-value">
-                  <button className="icon-button" aria-label="Menos" onClick={() => setPortions(meal.portions - 0.25)}>−</button>
+                  <button className="icon-button" aria-label="Menos" onClick={() => setPortions(meal.portions - 0.25)}><Icon name="minus" /></button>
                   <strong>{formatNumber(meal.portions, 2)}</strong>
-                  <button className="icon-button" aria-label="Más" onClick={() => setPortions(meal.portions + 0.25)}>+</button>
+                  <button className="icon-button" aria-label="Más" onClick={() => setPortions(meal.portions + 0.25)}><Icon name="plus" /></button>
                 </span>
               </div>
               <a className="row row-link" href={`#/receta/${recipe.id}?r=${meal.portions}`}>Ver receta e ingredientes ›</a>
@@ -109,9 +110,9 @@ export function MealEditPage({ day, slot }: { day: string; slot: MealSlot }) {
           {results.map(option)}
           {results.length === 0 && <div className="row muted">No hay recetas con «{query}» en tu recetario.</div>}
           <a className="row row-link" href={`https://cookidoo.es/search/es-ES?query=${encodeURIComponent(query)}`} target="_blank" rel="noreferrer">
-            Buscar «{query}» en Cookidoo ↗
+            Buscar «{query}» en Cookidoo <Icon name="external" className="inline-icon" />
           </a>
-          <a className="row row-link" href={`#/receta-nueva?slot=${slot}&nombre=${encodeURIComponent(query)}`}>＋ Crear «{query}» como receta propia</a>
+          <a className="row row-link" href={`#/receta-nueva?slot=${slot}&nombre=${encodeURIComponent(query)}`}><Icon name="plus" className="row-icon" /> Crear «{query}» como receta propia</a>
         </Card>
       ) : (
         <>

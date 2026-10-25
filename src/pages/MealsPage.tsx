@@ -1,3 +1,4 @@
+import { Icon } from '../components/Icon'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
 import { Card, Page } from '../components/ui'
@@ -35,8 +36,8 @@ export function MealsPage({ weekStart }: { weekStart: string }) {
       title={weekTitle(weekStart)}
       actions={
         <>
-          <a className="icon-button" href={`#/comidas?w=${addDays(weekStart, -7)}`} aria-label="Semana anterior">‹</a>
-          <a className="icon-button" href={`#/comidas?w=${addDays(weekStart, 7)}`} aria-label="Semana siguiente">›</a>
+          <a className="icon-button" href={`#/comidas?w=${addDays(weekStart, -7)}`} aria-label="Semana anterior"><Icon name="left" /></a>
+          <a className="icon-button" href={`#/comidas?w=${addDays(weekStart, 7)}`} aria-label="Semana siguiente"><Icon name="right" /></a>
         </>
       }
     >
@@ -78,9 +79,9 @@ export function MealsPage({ weekStart }: { weekStart: string }) {
       <p className="card-footer">Desliza para ver toda la semana. Toca una comida para cambiarla. Arriba: kcal planificadas / objetivo.</p>
 
       <Card>
-        <a className="row row-link" href={`#/compra?w=${weekStart}`}>🛒 Lista de la compra ›</a>
-        <a className="row row-link" href="#/preferencias">🚫 Alimentos que no quieres ›</a>
-        <a className="row row-link" href="#/receta-nueva">＋ Añadir una receta propia ›</a>
+        <a className="row row-link" href={`#/compra?w=${weekStart}`}><Icon name="cart" className="row-icon" /> Lista de la compra ›</a>
+        <a className="row row-link" href="#/preferencias"><Icon name="ban" className="row-icon" /> Alimentos que no quieres ›</a>
+        <a className="row row-link" href="#/receta-nueva"><Icon name="plus" className="row-icon" /> Añadir una receta propia ›</a>
       </Card>
     </Page>
   )
@@ -102,7 +103,7 @@ function SlotRow({ slot, days, meals }: { slot: Meal['slot']; days: string[]; me
                 <span className="meal-kcal">{formatNumber(mealNutrition(meal!).kcal)} kcal</span>
               </>
             ) : (
-              <span className="meal-add">＋</span>
+              <span className="meal-add"><Icon name="plus" /></span>
             )}
           </a>
         )

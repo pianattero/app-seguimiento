@@ -1,3 +1,4 @@
+import { Icon } from '../components/Icon'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
 import { Card, Page } from '../components/ui'
@@ -29,7 +30,7 @@ export function PreferencesPage() {
         {excluded.map((e) => (
           <div className="row" key={e}>
             <span className="row-main">{e}</span>
-            <button className="icon-button danger" aria-label={`Quitar ${e}`} onClick={() => save(excluded.filter((x) => x !== e))}>×</button>
+            <button className="icon-button danger" aria-label={`Quitar ${e}`} onClick={() => save(excluded.filter((x) => x !== e))}><Icon name="close" /></button>
           </div>
         ))}
         <form
@@ -48,7 +49,7 @@ export function PreferencesPage() {
       <Card title="Añadir rápido">
         <div className="row chips">
           {quickOptions.filter((o) => !excluded.some((e) => e.toLowerCase() === o.toLowerCase())).map((o) => (
-            <button key={o} className="chip" onClick={() => add(o)}>+ {o}</button>
+            <button key={o} className="chip" onClick={() => add(o)}><Icon name="plus" className="inline-icon" /> {o}</button>
           ))}
         </div>
       </Card>
