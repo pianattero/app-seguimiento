@@ -89,13 +89,13 @@ export function MealsPage({ weekStart }: { weekStart: string }) {
 function SlotRow({ slot, days, meals }: { slot: Meal['slot']; days: string[]; meals: Meal[] }) {
   return (
     <>
-      <div className="meal-grid-slot" role="rowheader">{slotLabel[slot]}</div>
+      <div className={`meal-grid-slot slot-${slot}`} role="rowheader">{slotLabel[slot]}</div>
       {days.map((day) => {
         const meal = meals.find((m) => m.day === day && m.slot === slot)
         const recipe = meal?.recipeId ? getRecipe(meal.recipeId) : undefined
         const name = recipe?.name ?? meal?.customName
         return (
-          <a key={day} className={`meal-cell${meal ? '' : ' empty'}${day === today() ? ' is-today' : ''}`} href={`#/comida/${day}/${slot}`} role="gridcell">
+          <a key={day} className={`meal-cell slot-${slot}${meal ? '' : ' empty'}${day === today() ? ' is-today' : ''}`} href={`#/comida/${day}/${slot}`} role="gridcell">
             {name ? (
               <>
                 <span className="meal-name">{name}</span>
@@ -119,7 +119,7 @@ export function MealRow({ day, slot, meal }: { day: string; slot: Meal['slot']; 
   return (
     <a className="row row-link" href={`#/comida/${day}/${slot}`}>
       <span className="row-main">
-        <small className="muted">{slotLabel[slot]}</small>
+        <small className={`slot-pill slot-${slot}`}>{slotLabel[slot]}</small>
         {name ? <span>{name}</span> : <span className="muted">Elegir…</span>}
       </span>
       {meal && (
