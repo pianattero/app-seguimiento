@@ -33,6 +33,8 @@ export interface Profile {
   cycleLengthDays?: number
   /** Días de regla. */
   periodLengthDays?: number
+  /** Alimentos que no se deben sugerir (se buscan en el nombre y los ingredientes). */
+  excludedFoods?: string[]
 }
 
 /** Rutina de fuerza asignada a un día de la semana (0 = lunes). */

@@ -1,12 +1,12 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
 import { Card, NumberInput, Page, Row } from '../components/ui'
-import { cycleFor, phaseInfo } from '../lib/cycle'
-import { dayTitle, today } from '../lib/dates'
+import { cycleFor, phaseInfo, type CyclePhase } from '../lib/cycle'
+import { addDays, dayTitle, daysBetween, parseDay, startOfWeek, today, toDayString } from '../lib/dates'
 import { db } from '../lib/db'
 import type { Profile } from '../lib/types'
 
-export function CyclePage() {
+export function CyclePage({ month }: { month?: string }) {
   const profile = useLiveQuery(() => db.profile.get('main'))
   const periods = useLiveQuery(() => db.periods.orderBy('start').reverse().toArray()) ?? []
   const [newStart, setNewStart] = useState(today())
@@ -15,6 +15,8 @@ export function CyclePage() {
 
   return (
     <Page title="Ciclo">
+      {profile && <CycleCalendar month={month ?? today().slice(0, 7)} profile={profile} starts={starts} />}
+
       {info ? (
         <>
           <Card title="Hoy">
@@ -93,5 +95,76 @@ function CycleSettings({ profile }: { profile: Profile }) {
         </span>
       </label>
     </Card>
+  )
+}
+
+const monthFormat = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' })
+const phaseClass: Record<CyclePhase, string> = { menstrual: 'ph-menstrual', folicular: 'ph-folicular', ovulatoria: 'ph-ovulatoria', lutea: 'ph-lutea' }
+
+/** Calendario del mes con la fase de cada día. Tocar un día permite marcar o quitar el inicio de la regla. */
+function CycleCalendar({ month, profile, starts }: { month: string; profile: Profile; starts: string[] }) {
+  const [selected, setSelected] = useState<string>()
+  const first = `${month}-01`
+  const firstDate = parseDay(first)
+  const prevMonth = toDayString(new Date(firstDate.getFullYear(), firstDate.getMonth() - 1, 1)).slice(0, 7)
+  const nextMonth = toDayString(new Date(firstDate.getFullYear(), firstDate.getMonth() + 1, 1)).slice(0, 7)
+  const gridStart = startOfWeek(first)
+  const lastOfMonth = toDayString(new Date(firstDate.getFullYear(), firstDate.getMonth() + 1, 0))
+  const weeks = Math.ceil((daysBetween(gridStart, lastOfMonth) + 1) / 7)
+  const days = Array.from({ length: weeks * 7 }, (_, i) => addDays(gridStart, i))
+  const periodLength = profile.periodLengthDays ?? 5
+  const isRecordedPeriod = (day: string) => starts.some((s) => { const d = daysBetween(s, day); return d >= 0 && d < periodLength })
+  const sel = selected ? cycleFor(selected, profile, starts) : undefined
+  const title = monthFormat.format(firstDate)
+
+  return (
+    <>
+      <div className="month-nav">
+        <a className="icon-button" href={`#/ciclo?m=${prevMonth}`} aria-label="Mes anterior">‹</a>
+        <h2>{title.charAt(0).toUpperCase() + title.slice(1)}</h2>
+        <a className="icon-button" href={`#/ciclo?m=${nextMonth}`} aria-label="Mes siguiente">›</a>
+      </div>
+      <div className="month-grid" role="grid" aria-label={`Ciclo de ${title}`}>
+        {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((d) => <div key={d} className="month-head">{d}</div>)}
+        {days.map((day) => {
+          const info = cycleFor(day, profile, starts)
+          const inMonth = day.slice(0, 7) === month
+          const recorded = isRecordedPeriod(day)
+          const predicted = !recorded && info?.phase === 'menstrual'
+          const cls = [
+            'month-day',
+            inMonth ? '' : 'out',
+            info ? phaseClass[info.phase] : '',
+            recorded ? 'recorded' : '',
+            predicted ? 'predicted' : '',
+            day === today() ? 'is-today' : '',
+            day === selected ? 'selected' : '',
+          ].filter(Boolean).join(' ')
+          return (
+            <button key={day} className={cls} onClick={() => setSelected(day === selected ? undefined : day)} aria-label={dayTitle(day)}>
+              {parseDay(day).getDate()}
+            </button>
+          )
+        })}
+      </div>
+      <div className="legend">
+        <span><i className="ph-menstrual recorded" />Regla</span>
+        <span><i className="ph-menstrual predicted" />Regla prevista</span>
+        <span><i className="ph-folicular" />Folicular</span>
+        <span><i className="ph-ovulatoria" />Ovulación</span>
+        <span><i className="ph-lutea" />Lútea</span>
+      </div>
+
+      {selected && (
+        <Card title={dayTitle(selected)}>
+          {sel ? <Row label={`Fase ${phaseInfo[sel.phase].label.toLowerCase()}`} value={`día ${sel.dayOfCycle}`} /> : <div className="row muted">Sin datos del ciclo para este día.</div>}
+          {starts.includes(selected) ? (
+            <button className="row row-button danger" onClick={() => db.periods.delete(selected)}>Quitar inicio de regla</button>
+          ) : (
+            selected <= today() && <button className="row row-button" onClick={() => db.periods.put({ start: selected })}>Marcar como primer día de regla</button>
+          )}
+        </Card>
+      )}
+    </>
   )
 }

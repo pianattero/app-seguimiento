@@ -1,4 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
+import type { Recipe } from './recipes'
 import type { Meal, PeriodStart, Profile, Routine, Session, ShoppingCheck, StrengthSet } from './types'
 
 /** Todos los datos viven en el navegador del móvil (IndexedDB). */
@@ -10,6 +11,7 @@ export class AppDB extends Dexie {
   meals!: EntityTable<Meal, 'id'>
   periods!: EntityTable<PeriodStart, 'start'>
   shopping!: EntityTable<ShoppingCheck, 'key'>
+  customRecipes!: EntityTable<Recipe, 'id'>
 
   constructor(name = 'seguimiento') {
     super(name)
@@ -23,6 +25,9 @@ export class AppDB extends Dexie {
       meals: '++id, day',
       periods: 'start',
       shopping: 'key',
+    })
+    this.version(3).stores({
+      customRecipes: 'id',
     })
   }
 }
@@ -62,6 +67,7 @@ export interface Backup {
   sets: StrengthSet[]
   meals?: Meal[]
   periods?: PeriodStart[]
+  customRecipes?: Recipe[]
 }
 
 export async function exportBackup(database: AppDB = db): Promise<Backup> {
@@ -74,13 +80,14 @@ export async function exportBackup(database: AppDB = db): Promise<Backup> {
     sets: await database.sets.toArray(),
     meals: await database.meals.toArray(),
     periods: await database.periods.toArray(),
+    customRecipes: await database.customRecipes.toArray(),
   }
 }
 
 /** Sustituye todos los datos por los de la copia. */
 export async function importBackup(backup: Backup, database: AppDB = db): Promise<void> {
   if (backup.version !== 1 && backup.version !== 2) throw new Error('Copia de seguridad no reconocida')
-  const tables = [database.profile, database.routines, database.sessions, database.sets, database.meals, database.periods]
+  const tables = [database.profile, database.routines, database.sessions, database.sets, database.meals, database.periods, database.customRecipes]
   await database.transaction('rw', tables, async () => {
     await Promise.all(tables.map((t) => t.clear()))
     await database.profile.bulkPut(backup.profile)
@@ -89,5 +96,6 @@ export async function importBackup(backup: Backup, database: AppDB = db): Promis
     await database.sets.bulkPut(backup.sets)
     await database.meals.bulkPut(backup.meals ?? [])
     await database.periods.bulkPut(backup.periods ?? [])
+    await database.customRecipes.bulkPut(backup.customRecipes ?? [])
   })
 }

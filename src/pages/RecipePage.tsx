@@ -2,14 +2,17 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { Card, Page, Row } from '../components/ui'
 import { db } from '../lib/db'
 import { formatNumber } from '../lib/format'
-import { recipeById } from '../lib/recipes'
+import { getRecipe } from '../lib/recipes'
+import { useState } from 'react'
 
 const unitText = { g: 'g', ml: 'ml', ud: '' }
 const raciones = (n: number) => `${formatNumber(n, 2)} ${n === 1 ? 'ración' : 'raciones'}`
 
 export function RecipePage({ id, portions }: { id: string; portions: number }) {
-  const recipe = recipeById.get(id)
+  const custom = useLiveQuery(() => db.customRecipes.get(id), [id])
+  const recipe = getRecipe(id) ?? custom
   const profile = useLiveQuery(() => db.profile.get('main'))
+  const [confirmDelete, setConfirmDelete] = useState(false)
   if (!recipe) return <Page title="Receta">{null}</Page>
   const factor = profile?.partnerPortionFactor ?? 1
   const total = portions * (1 + factor)
@@ -42,9 +45,24 @@ export function RecipePage({ id, portions }: { id: string; portions: number }) {
         </Card>
       )}
 
-      <Card title={recipe.thermomix ? 'Sin Thermomix' : 'Preparación'}>
-        <ol className="steps">{recipe.steps.map((s) => <li key={s}>{s}</li>)}</ol>
-      </Card>
+      {recipe.steps.length > 0 && (
+        <Card title={recipe.thermomix ? 'Sin Thermomix' : 'Preparación'}>
+          <ol className="steps">{recipe.steps.map((s) => <li key={s}>{s}</li>)}</ol>
+        </Card>
+      )}
+
+      {custom && (
+        <button
+          className="danger wide"
+          onClick={async () => {
+            if (!confirmDelete) return setConfirmDelete(true)
+            await db.customRecipes.delete(id)
+            history.back()
+          }}
+        >
+          {confirmDelete ? 'Pulsa otra vez para borrar la receta' : 'Borrar esta receta propia'}
+        </button>
+      )}
     </Page>
   )
 }

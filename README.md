@@ -13,10 +13,12 @@ App web para el móvil que sigue los entrenos de la semana (fuerza lunes y miér
 
 ## Comidas y ciclo
 
-- **Comidas**: menú semanal con desayuno, almuerzo, merienda y cena. «Generar menú» elige recetas del recetario (`src/lib/recipes.ts`) y ajusta las raciones a las calorías de cada día, que dependen del entreno y de la fase del ciclo. Cada comida se puede cambiar por otra receta o por una comida libre.
-- **Recetas**: macros por ración, ingredientes para los dos y pasos con Thermomix cuando la receta se presta.
+- **Comidas**: calendario semanal (días en columnas, comidas en filas) con desayuno, almuerzo, merienda y cena. «Generar menú» elige recetas del recetario (`src/lib/recipes.ts`) y ajusta las raciones a las calorías de cada día, que dependen del entreno y de la fase del ciclo. Cada comida se puede cambiar por otra receta o por una comida libre.
+- **Recetas**: unas 50, con macros por ración e ingredientes para los dos. Los almuerzos y cenas que se prestan llevan pasos para Thermomix; desayunos y meriendas no.
+- **Buscador**: al tocar una comida se ven sugerencias según las calorías de ese hueco y un buscador por nombre o ingrediente. Si no está en el recetario, se puede buscar en Cookidoo o crear como receta propia (con sus ingredientes, que entran en la lista de la compra).
+- **No me gusta**: alimentos o grupos (curry, pescado, lácteos...) que el menú y las sugerencias evitan.
 - **Lista de la compra**: suma los ingredientes del menú de 1 o 2 semanas para las dos personas, agrupados por sección, con casillas para ir tachando.
-- **Ciclo**: registro de reglas a mano o con el Atajo «Enviar ciclo» (`#/ciclo/importar?dias=...`), fase y día del ciclo, previsión de la próxima regla y consejos de comida y entreno. En la fase lútea el déficit baja 150 kcal (se puede desactivar).
+- **Ciclo**: calendario mensual con las fases en colores; tocar un día lo marca como inicio de regla. Registro de reglas a mano o con el Atajo «Enviar ciclo» (`#/ciclo/importar?dias=...`), fase y día del ciclo, previsión de la próxima regla y consejos de comida y entreno. En la fase lútea el déficit baja 150 kcal (se puede desactivar).
 
 Los datos se guardan en el navegador del móvil (IndexedDB). Conviene usar la app siempre desde Safari (no desde la pantalla de inicio, porque el Atajo abre Safari) y descargar una copia de seguridad de vez en cuando.
 
