@@ -2,9 +2,15 @@ import { useEffect } from 'react'
 import { startOfWeek, today } from './lib/dates'
 import { seedIfNeeded } from './lib/db'
 import { ensureWeek } from './lib/planner'
+import type { MealSlot } from './lib/recipes'
 import { useRoute } from './lib/router'
 import { ImportPage } from './pages/ImportPage'
-import { ProgressPage } from './pages/ProgressPage'
+import { CycleImportPage } from './pages/CycleImportPage'
+import { CyclePage } from './pages/CyclePage'
+import { MealEditPage } from './pages/MealEditPage'
+import { MealsPage } from './pages/MealsPage'
+import { RecipePage } from './pages/RecipePage'
+import { ShoppingPage } from './pages/ShoppingPage'
 import { SessionPage } from './pages/SessionPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { ShortcutPage } from './pages/ShortcutPage'
@@ -14,11 +20,12 @@ import { WeekPage } from './pages/WeekPage'
 const tabs = [
   { key: 'hoy', label: 'Hoy', icon: '☀️' },
   { key: 'semana', label: 'Entrenos', icon: '🏃‍♀️' },
-  { key: 'progreso', label: 'Progreso', icon: '📈' },
+  { key: 'comidas', label: 'Comidas', icon: '🥗' },
+  { key: 'ciclo', label: 'Ciclo', icon: '🌙' },
   { key: 'ajustes', label: 'Ajustes', icon: '⚙️' },
 ]
 
-const tabFor: Record<string, string> = { sesion: 'semana', importar: 'semana', atajo: 'ajustes' }
+const tabFor: Record<string, string> = { sesion: 'semana', importar: 'semana', atajo: 'ajustes', comida: 'comidas', receta: 'comidas', compra: 'comidas' }
 
 export default function App() {
   const { path, params } = useRoute()
@@ -39,8 +46,20 @@ export default function App() {
     case 'importar':
       page = <ImportPage params={params} />
       break
-    case 'progreso':
-      page = <ProgressPage />
+    case 'comidas':
+      page = <MealsPage weekStart={startOfWeek(params.get('w') ?? today())} />
+      break
+    case 'comida':
+      page = <MealEditPage day={path[1]} slot={path[2] as MealSlot} />
+      break
+    case 'receta':
+      page = <RecipePage id={path[1]} portions={Number(params.get('r') ?? 1) || 1} />
+      break
+    case 'compra':
+      page = <ShoppingPage weekStart={startOfWeek(params.get('w') ?? today())} weeks={params.get('semanas') === '2' ? 2 : 1} />
+      break
+    case 'ciclo':
+      page = path[1] === 'importar' ? <CycleImportPage params={params} /> : <CyclePage />
       break
     case 'ajustes':
       page = <SettingsPage />

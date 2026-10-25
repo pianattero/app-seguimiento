@@ -49,3 +49,12 @@ export function dayTitle(day: DayString): string {
 export function weekTitle(weekStart: DayString): string {
   return `${shortFormat.format(parseDay(weekStart))} – ${shortFormat.format(parseDay(addDays(weekStart, 6)))}`
 }
+
+/** Días de `from` a `to` (negativo si `to` es anterior). */
+export function daysBetween(from: DayString, to: DayString): number {
+  const utc = (d: DayString) => {
+    const [y, m, day] = d.split('-').map(Number)
+    return Date.UTC(y, m - 1, day)
+  }
+  return Math.round((utc(to) - utc(from)) / 86_400_000)
+}

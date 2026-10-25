@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
-import type { Profile, Routine, Session, StrengthSet } from './types'
+import type { Meal, PeriodStart, Profile, Routine, Session, ShoppingCheck, StrengthSet } from './types'
 
 /** Todos los datos viven en el navegador del móvil (IndexedDB). */
 export class AppDB extends Dexie {
@@ -7,6 +7,9 @@ export class AppDB extends Dexie {
   routines!: EntityTable<Routine, 'weekdayIndex'>
   sessions!: EntityTable<Session, 'id'>
   sets!: EntityTable<StrengthSet, 'id'>
+  meals!: EntityTable<Meal, 'id'>
+  periods!: EntityTable<PeriodStart, 'start'>
+  shopping!: EntityTable<ShoppingCheck, 'key'>
 
   constructor(name = 'seguimiento') {
     super(name)
@@ -15,6 +18,11 @@ export class AppDB extends Dexie {
       routines: 'weekdayIndex',
       sessions: '++id, day, externalId',
       sets: '++id, sessionId, exerciseName, createdAt',
+    })
+    this.version(2).stores({
+      meals: '++id, day',
+      periods: 'start',
+      shopping: 'key',
     })
   }
 }
@@ -46,34 +54,40 @@ export async function seedIfNeeded(database: AppDB = db): Promise<void> {
 }
 
 export interface Backup {
-  version: 1
+  version: 1 | 2
   exportedAt: string
   profile: Profile[]
   routines: Routine[]
   sessions: Session[]
   sets: StrengthSet[]
+  meals?: Meal[]
+  periods?: PeriodStart[]
 }
 
 export async function exportBackup(database: AppDB = db): Promise<Backup> {
   return {
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
     profile: await database.profile.toArray(),
     routines: await database.routines.toArray(),
     sessions: await database.sessions.toArray(),
     sets: await database.sets.toArray(),
+    meals: await database.meals.toArray(),
+    periods: await database.periods.toArray(),
   }
 }
 
 /** Sustituye todos los datos por los de la copia. */
 export async function importBackup(backup: Backup, database: AppDB = db): Promise<void> {
-  if (backup.version !== 1) throw new Error('Copia de seguridad no reconocida')
-  const tables = [database.profile, database.routines, database.sessions, database.sets]
+  if (backup.version !== 1 && backup.version !== 2) throw new Error('Copia de seguridad no reconocida')
+  const tables = [database.profile, database.routines, database.sessions, database.sets, database.meals, database.periods]
   await database.transaction('rw', tables, async () => {
     await Promise.all(tables.map((t) => t.clear()))
     await database.profile.bulkPut(backup.profile)
     await database.routines.bulkPut(backup.routines)
     await database.sessions.bulkPut(backup.sessions)
     await database.sets.bulkPut(backup.sets)
+    await database.meals.bulkPut(backup.meals ?? [])
+    await database.periods.bulkPut(backup.periods ?? [])
   })
 }
