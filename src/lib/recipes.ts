@@ -46,6 +46,10 @@ export interface Recipe {
   fromPlan?: boolean
   /** Lleva su ración de hidratos (arroz, pasta, papa, pan, masa...). Las cenas sin hidratos son para días sin running. */
   withCarbs?: boolean
+  /** Plato que se acompaña con una guarnición elegida aparte (milanesa, tarta, pechuga...). */
+  needsSide?: boolean
+  /** Es una guarnición: no se elige sola como comida, acompaña a un plato. */
+  side?: boolean
 }
 
 const baseRecipes: Recipe[] = [
@@ -577,10 +581,16 @@ export function recipesFor(slot: MealSlot, excluded: string[] = []): Recipe[] {
   return allRecipes().filter((r) => r.slots.includes(slot) && isAllowed(r, excluded))
 }
 
-/** Busca por nombre o ingrediente; todas las palabras deben aparecer. */
+/** Guarniciones para acompañar platos, sin las que llevan alimentos excluidos. */
+export function sidesFor(excluded: string[] = []): Recipe[] {
+  return allRecipes().filter((r) => r.side && isAllowed(r, excluded))
+}
+
+/** Busca por nombre o ingrediente; todas las palabras deben aparecer. Las guarniciones no salen. */
 export function searchRecipes(query: string, excluded: string[] = []): Recipe[] {
   const words = normalize(query).split(/\s+/).filter(Boolean)
   return allRecipes().filter((r) => {
+    if (r.side) return false
     const text = searchableText(r)
     return isAllowed(r, excluded) && words.every((w) => text.includes(w))
   })

@@ -2,7 +2,7 @@ import { addDays, daysOfWeek, type DayString } from './dates'
 import { planForDay } from './dayPlan'
 import { db as defaultDb, type AppDB } from './db'
 import { ensureWeek, sessionsInWeek } from './planner'
-import { allRecipes, getRecipe, mealSlots, recipesFor, setCustomRecipes, shopSections, slotShare, type Ingredient, type MealSlot, type Recipe, type ShopSection } from './recipes'
+import { allRecipes, getRecipe, mealSlots, recipesFor, setCustomRecipes, sidesFor, shopSections, slotShare, type Ingredient, type MealSlot, type Recipe, type ShopSection } from './recipes'
 import type { Meal } from './types'
 
 export interface Nutrition {
@@ -20,12 +20,31 @@ export function mealNutrition(meal: Meal): Nutrition {
   if (!recipe) {
     return { kcal: meal.customKcal ?? 0, proteinG: meal.customProteinG ?? 0, carbsG: meal.customCarbsG ?? 0, fatG: meal.customFatG ?? 0 }
   }
-  return {
-    kcal: recipe.kcal * meal.portions,
-    proteinG: recipe.proteinG * meal.portions,
-    carbsG: recipe.carbsG * meal.portions,
-    fatG: recipe.fatG * meal.portions,
-  }
+  const side = meal.sideId ? getRecipe(meal.sideId) : undefined
+  const sum = (key: keyof Nutrition) => (recipe[key] + (side?.[key] ?? 0)) * meal.portions
+  return { kcal: sum('kcal'), proteinG: sum('proteinG'), carbsG: sum('carbsG'), fatG: sum('fatG') }
+}
+
+/** Nombre para mostrar: el plato y, si tiene, su guarnición. */
+export function mealTitle(meal: Meal): { name?: string; side?: string } {
+  const recipe = meal.recipeId ? getRecipe(meal.recipeId) : undefined
+  const side = meal.sideId ? getRecipe(meal.sideId) : undefined
+  return { name: recipe?.name ?? meal.customName, side: recipe && side ? side.name : undefined }
+}
+
+/**
+ * Guarnición según el plan: con un plato que ya lleva hidratos (milanesa, tarta), verdura;
+ * en el almuerzo de un plato sin hidratos, una con hidratos (papa, arroz, choclo); en la cena ligera, verdura.
+ */
+export function pickSide(main: Recipe, slot: MealSlot, random: () => number, options: { excluded?: string[]; lightDinner?: boolean; avoid?: string } = {}): Recipe | undefined {
+  if (!main.needsSide) return undefined
+  const sides = sidesFor(options.excluded)
+  const wantCarbs = main.withCarbs ? false : slot === 'almuerzo' ? true : options.lightDinner ? false : undefined
+  let pool = wantCarbs === undefined ? sides : sides.filter((r) => !!r.withCarbs === wantCarbs)
+  if (pool.length === 0) pool = sides
+  const fresh = pool.filter((r) => r.id !== options.avoid)
+  const list = fresh.length ? fresh : pool
+  return list.length ? list[Math.floor(random() * list.length) % list.length] : undefined
 }
 
 export function totals(meals: Meal[]): Nutrition {
@@ -36,8 +55,8 @@ export function totals(meals: Meal[]): Nutrition {
 }
 
 /** Raciones para acercarse a las kcal de la comida, en cuartos y entre 0,75 y 1,5. */
-export function suggestPortions(recipe: Recipe, slotKcal: number): number {
-  const raw = Math.round((slotKcal / recipe.kcal) * 4) / 4
+export function suggestPortions(recipe: Recipe, slotKcal: number, side?: Recipe): number {
+  const raw = Math.round((slotKcal / (recipe.kcal + (side?.kcal ?? 0))) * 4) / 4
   return Math.min(Math.max(raw, 0.75), 1.5)
 }
 
@@ -60,7 +79,7 @@ export function pickRecipe(slot: MealSlot, usedThisWeek: string[], yesterday: st
   }
   if (options.planOnly) narrow((r) => !!r.fromPlan)
   // Plan: el almuerzo lleva su ¼ de hidratos; la cena, solo los días de running.
-  if (slot === 'almuerzo' && options.planOnly) narrow((r) => !!r.withCarbs)
+  if (slot === 'almuerzo' && options.planOnly) narrow((r) => !!r.withCarbs || !!r.needsSide)
   if (slot === 'cena' && options.lightDinner) narrow((r) => !r.withCarbs && r.carbsG <= 30)
   const count = (id: string) => usedThisWeek.filter((u) => u === id).length
   const fresh = all.filter((r) => r.id !== yesterday && count(r.id) < 2)
@@ -98,13 +117,15 @@ export async function fillWeek(
       const { target } = planForDay(day, profile, sessions, periodStarts)
       for (const slot of mealSlots) {
         if (existing.some((m) => m.day === day && m.slot === slot)) continue
-        const yesterday = existing.find((m) => m.day === addDays(day, -1) && m.slot === slot)?.recipeId
-        const recipe = pickRecipe(slot, used[slot], yesterday, random, {
+        const previous = existing.find((m) => m.day === addDays(day, -1) && m.slot === slot)
+        const lightDinner = !runningDay(day)
+        const recipe = pickRecipe(slot, used[slot], previous?.recipeId, random, {
           excluded: profile.excludedFoods,
           planOnly: profile.menuSource !== 'todo',
-          lightDinner: !runningDay(day),
+          lightDinner,
         })
-        const meal: Meal = { day, slot, recipeId: recipe.id, portions: suggestPortions(recipe, target.kcal * slotShare[slot]) }
+        const side = pickSide(recipe, slot, random, { excluded: profile.excludedFoods, lightDinner, avoid: previous?.sideId })
+        const meal: Meal = { day, slot, recipeId: recipe.id, sideId: side?.id, portions: suggestPortions(recipe, target.kcal * slotShare[slot], side) }
         await db.meals.add(meal)
         existing.push(meal)
         used[slot].push(recipe.id)
@@ -150,8 +171,9 @@ export function shoppingList(meals: Meal[], partnerFactor: number): { section: S
   for (const meal of meals) {
     const recipe = meal.recipeId ? getRecipe(meal.recipeId) : undefined
     if (!recipe) continue
+    const side = meal.sideId ? getRecipe(meal.sideId) : undefined
     const portions = meal.portions * (1 + partnerFactor)
-    for (const ing of recipe.ingredients) {
+    for (const ing of [...recipe.ingredients, ...(side?.ingredients ?? [])]) {
       const key = `${ing.name}|${ing.unit}`
       const item = items.get(key) ?? { key, name: ing.name, qty: 0, unit: ing.unit, section: ing.section }
       item.qty += ing.qty * portions

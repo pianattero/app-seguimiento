@@ -1,4 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
+import { legacyPlanMeals } from './planRecipes'
 import type { Recipe } from './recipes'
 import type { Meal, PeriodStart, Profile, Session, ShoppingCheck, StrengthSet, WeightEntry } from './types'
 
@@ -36,6 +37,17 @@ export class AppDB extends Dexie {
     this.version(5).stores({
       weights: 'day',
     })
+    // Los platos del plan con acompañamiento fijo se separan en plato + guarnición.
+    this.version(6).stores({}).upgrade((tx) => tx.table('meals').toCollection().modify(splitLegacyMeal))
+  }
+}
+
+/** Pasa un plato del plan con acompañamiento fijo a plato + guarnición. */
+export function splitLegacyMeal(meal: Pick<Meal, 'recipeId' | 'sideId'>): void {
+  const split = meal.recipeId ? legacyPlanMeals[meal.recipeId] : undefined
+  if (split) {
+    meal.recipeId = split.main
+    meal.sideId = split.side
   }
 }
 
@@ -96,7 +108,9 @@ export async function importBackup(backup: Backup, database: AppDB = db): Promis
     await database.profile.bulkPut(backup.profile)
     await database.sessions.bulkPut(backup.sessions)
     await database.sets.bulkPut(backup.sets)
-    await database.meals.bulkPut(backup.meals ?? [])
+    const meals = backup.meals ?? []
+    meals.forEach(splitLegacyMeal)
+    await database.meals.bulkPut(meals)
     await database.periods.bulkPut(backup.periods ?? [])
     await database.weights.bulkPut(backup.weights ?? [])
     await database.customRecipes.bulkPut(backup.customRecipes ?? [])

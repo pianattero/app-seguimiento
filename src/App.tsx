@@ -69,7 +69,7 @@ export default function App() {
       page = <MealEditPage day={path[1]} slot={path[2] as MealSlot} />
       break
     case 'receta':
-      page = <RecipePage id={path[1]} portions={Number(params.get('r') ?? 1) || 1} />
+      page = <RecipePage id={path[1]} sideId={params.get('g') ?? undefined} portions={Number(params.get('r') ?? 1) || 1} />
       break
     case 'receta-nueva':
       page = <RecipeFormPage params={params} />

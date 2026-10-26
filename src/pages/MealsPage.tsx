@@ -6,7 +6,7 @@ import { addDays, daysOfWeek, parseDay, today, weekTitle } from '../lib/dates'
 import { planForDay } from '../lib/dayPlan'
 import { db } from '../lib/db'
 import { formatNumber } from '../lib/format'
-import { fillWeek, mealNutrition, totals } from '../lib/meals'
+import { fillWeek, mealNutrition, mealTitle, totals } from '../lib/meals'
 import { sessionsInWeek } from '../lib/planner'
 import { getRecipe, mealSlots, slotLabel } from '../lib/recipes'
 import type { Meal } from '../lib/types'
@@ -92,13 +92,13 @@ function SlotRow({ slot, days, meals }: { slot: Meal['slot']; days: string[]; me
       <div className={`meal-grid-slot slot-${slot}`} role="rowheader">{slotLabel[slot]}</div>
       {days.map((day) => {
         const meal = meals.find((m) => m.day === day && m.slot === slot)
-        const recipe = meal?.recipeId ? getRecipe(meal.recipeId) : undefined
-        const name = recipe?.name ?? meal?.customName
+        const { name, side } = meal ? mealTitle(meal) : {}
         return (
           <a key={day} className={`meal-cell slot-${slot}${meal ? '' : ' empty'}${day === today() ? ' is-today' : ''}`} href={`#/comida/${day}/${slot}`} role="gridcell">
             {name ? (
               <>
                 <span className="meal-name">{name}</span>
+                {side && <span className="meal-side">+ {side}</span>}
                 <span className="meal-kcal">{formatNumber(mealNutrition(meal!).kcal)} kcal</span>
               </>
             ) : (
@@ -114,13 +114,13 @@ function SlotRow({ slot, days, meals }: { slot: Meal['slot']; days: string[]; me
 /** Fila de comida en formato lista (la usa la pantalla Hoy). */
 export function MealRow({ day, slot, meal }: { day: string; slot: Meal['slot']; meal?: Meal }) {
   const recipe = meal?.recipeId ? getRecipe(meal.recipeId) : undefined
-  const name = recipe?.name ?? meal?.customName
+  const { name, side } = meal ? mealTitle(meal) : {}
   const kcal = meal ? mealNutrition(meal).kcal : 0
   return (
     <a className="row row-link" href={`#/comida/${day}/${slot}`}>
       <span className="row-main">
         <small className={`slot-pill slot-${slot}`}>{slotLabel[slot]}</small>
-        {name ? <span>{name}</span> : <span className="muted">Elegir…</span>}
+        {name ? <span>{name}{side && <small className="muted"> + {side.toLowerCase()}</small>}</span> : <span className="muted">Elegir…</span>}
       </span>
       {meal && (
         <span className="row-value">
