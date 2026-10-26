@@ -23,6 +23,7 @@ export function ShoppingPage({ weekStart, weeks }: { weekStart: string; weeks: 1
 
   const [copied, setCopied] = useState(false)
   const pending = list.flatMap((s) => s.items.filter((i) => !checked.has(`${weekStart}|${i.key}`)))
+  const itemCount = list.reduce((n, s) => n + s.items.length, 0)
 
   async function copy() {
     const text = pending.map((i) => `${i.name}: ${formatNumber(i.qty)} ${unitText[i.unit]}`).join('\n')
@@ -56,6 +57,12 @@ export function ShoppingPage({ weekStart, weeks }: { weekStart: string; weeks: 1
         <Card>
           <div className="row muted">No hay recetas en el menú de estas fechas.</div>
         </Card>
+      )}
+      {list.length > 0 && (
+        <div className="shop-progress" aria-live="polite">
+          <span><strong>{itemCount - pending.length}</strong> de {itemCount} en el carro</span>
+          <span className="macro-track"><span className="macro-fill" style={{ width: `${((itemCount - pending.length) / itemCount) * 100}%`, background: 'var(--green)' }} /></span>
+        </div>
       )}
       {list.length > 0 && (
         <Card footer="Mercadona no permite que otras webs añadan cosas a tu carrito. Toca el icono de cada producto para buscarlo en su tienda online, o copia la lista para pegarla en Notas.">

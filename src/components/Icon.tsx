@@ -70,6 +70,20 @@ const paths: Record<string, ReactNode> = {
       <path d="M8.5 9a5 5 0 0 1 7 0M12 9.5l1.5-2" />
     </>
   ),
+  check: <path d="M5 12.5l4.5 4.5L19 7.5" />,
+  calendar: (
+    <>
+      <rect x="4" y="5" width="16" height="15" rx="3" />
+      <path d="M4 10h16M9 3v4M15 3v4" />
+    </>
+  ),
+  list: <path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" />,
+  clock: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7.5V12l3 2" />
+    </>
+  ),
   book: <path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4Zm0 13a3 3 0 0 1 3-3h11" />,
 }
 
