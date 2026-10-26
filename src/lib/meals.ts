@@ -41,10 +41,27 @@ export function suggestPortions(recipe: Recipe, slotKcal: number): number {
   return Math.min(Math.max(raw, 0.75), 1.5)
 }
 
+export interface PickOptions {
+  excluded?: string[]
+  /** Solo recetas del plan de alimentación, si hay suficientes. */
+  planOnly?: boolean
+  /** Cena sin hidratos (días sin running, según el plan). */
+  lightDinner?: boolean
+}
+
 /** Elige una receta variada para una comida: sin repetir la del día anterior y como mucho 2 veces por semana. */
-export function pickRecipe(slot: MealSlot, usedThisWeek: string[], yesterday: string | undefined, random: () => number, excluded: string[] = []): Recipe {
-  const allowed = recipesFor(slot, excluded)
-  const all = allowed.length ? allowed : allRecipes().filter((r) => r.slots.includes(slot))
+export function pickRecipe(slot: MealSlot, usedThisWeek: string[], yesterday: string | undefined, random: () => number, options: PickOptions = {}): Recipe {
+  const allowed = recipesFor(slot, options.excluded)
+  let all = allowed.length ? allowed : allRecipes().filter((r) => r.slots.includes(slot))
+  // Se aplica cada preferencia solo si deja al menos 3 opciones, para no repetir siempre lo mismo.
+  const narrow = (keep: (r: Recipe) => boolean) => {
+    const kept = all.filter(keep)
+    if (kept.length >= 3) all = kept
+  }
+  if (options.planOnly) narrow((r) => !!r.fromPlan)
+  // Plan: el almuerzo lleva su ¼ de hidratos; la cena, solo los días de running.
+  if (slot === 'almuerzo' && options.planOnly) narrow((r) => !!r.withCarbs)
+  if (slot === 'cena' && options.lightDinner) narrow((r) => !r.withCarbs && r.carbsG <= 30)
   const count = (id: string) => usedThisWeek.filter((u) => u === id).length
   const fresh = all.filter((r) => r.id !== yesterday && count(r.id) < 2)
   const pool = fresh.length ? fresh : all
@@ -68,6 +85,8 @@ export async function fillWeek(
   const sessions = await sessionsInWeek(weekStart, db)
   const periodStarts = (await db.periods.toArray()).map((p) => p.start)
   const weekEnd = addDays(weekStart, 7)
+  // Según el plan, los días de running la cena puede llevar hidratos como el almuerzo.
+  const runningDay = (day: DayString) => sessions.some((s) => s.day === day && s.kind === 'running' && s.status !== 'skipped')
 
   await db.transaction('rw', db.meals, async () => {
     if (options.replace) await db.meals.where('day').between(weekStart, weekEnd).delete()
@@ -80,7 +99,11 @@ export async function fillWeek(
       for (const slot of mealSlots) {
         if (existing.some((m) => m.day === day && m.slot === slot)) continue
         const yesterday = existing.find((m) => m.day === addDays(day, -1) && m.slot === slot)?.recipeId
-        const recipe = pickRecipe(slot, used[slot], yesterday, random, profile.excludedFoods)
+        const recipe = pickRecipe(slot, used[slot], yesterday, random, {
+          excluded: profile.excludedFoods,
+          planOnly: profile.menuSource !== 'todo',
+          lightDinner: !runningDay(day),
+        })
         const meal: Meal = { day, slot, recipeId: recipe.id, portions: suggestPortions(recipe, target.kcal * slotShare[slot]) }
         await db.meals.add(meal)
         existing.push(meal)

@@ -1,4 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks'
+import { useState } from 'react'
+import { Icon } from '../components/Icon'
 import { Card, Page } from '../components/ui'
 import { addDays, weekTitle } from '../lib/dates'
 import { db } from '../lib/db'
@@ -6,6 +8,9 @@ import { formatNumber } from '../lib/format'
 import { shoppingList } from '../lib/meals'
 
 const unitText = { g: 'g', ml: 'ml', ud: 'ud' }
+
+/** Mercadona no tiene API pública para llenar el carrito: se abre su buscador con el producto. */
+const mercadonaUrl = (name: string) => `https://tienda.mercadona.es/search-results?query=${encodeURIComponent(name.replace(/\(.*?\)/g, '').trim())}`
 
 export function ShoppingPage({ weekStart, weeks }: { weekStart: string; weeks: 1 | 2 }) {
   const end = addDays(weekStart, 7 * weeks)
@@ -15,6 +20,19 @@ export function ShoppingPage({ weekStart, weeks }: { weekStart: string; weeks: 1
   const list = shoppingList(meals, profile?.partnerPortionFactor ?? 1)
   const checked = new Set(checks.filter((c) => c.checked).map((c) => c.key))
   const secondWeekEmpty = weeks === 2 && !meals.some((m) => m.day >= addDays(weekStart, 7))
+
+  const [copied, setCopied] = useState(false)
+  const pending = list.flatMap((s) => s.items.filter((i) => !checked.has(`${weekStart}|${i.key}`)))
+
+  async function copy() {
+    const text = pending.map((i) => `${i.name}: ${formatNumber(i.qty)} ${unitText[i.unit]}`).join('\n')
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+    } catch {
+      setCopied(false)
+    }
+  }
 
   const toggle = (key: string) => db.shopping.put({ key: `${weekStart}|${key}`, checked: !checked.has(`${weekStart}|${key}`) })
 
@@ -39,6 +57,16 @@ export function ShoppingPage({ weekStart, weeks }: { weekStart: string; weeks: 1
           <div className="row muted">No hay recetas en el menú de estas fechas.</div>
         </Card>
       )}
+      {list.length > 0 && (
+        <Card footer="Mercadona no permite que otras webs añadan cosas a tu carrito. Toca el icono de cada producto para buscarlo en su tienda online, o copia la lista para pegarla en Notas.">
+          <a className="row row-link" href="https://tienda.mercadona.es/" target="_blank" rel="noreferrer">
+            <Icon name="cart" className="row-icon" /> Abrir Mercadona <Icon name="external" className="inline-icon" />
+          </a>
+          <button className="row row-button" onClick={copy}>
+            <Icon name="book" className="row-icon" /> {copied ? 'Lista copiada' : `Copiar lo que falta (${pending.length})`}
+          </button>
+        </Card>
+      )}
       {list.map(({ section, items }) => (
         <Card key={section} title={section}>
           {items.map((item) => (
@@ -46,6 +74,9 @@ export function ShoppingPage({ weekStart, weeks }: { weekStart: string; weeks: 1
               <input type="checkbox" checked={checked.has(`${weekStart}|${item.key}`)} onChange={() => toggle(item.key)} />
               <span className="row-main">{item.name}</span>
               <span className="row-value">{formatNumber(item.qty)} {unitText[item.unit]}</span>
+              <a className="icon-button" href={mercadonaUrl(item.name)} target="_blank" rel="noreferrer" aria-label={`Buscar ${item.name} en Mercadona`}>
+                <Icon name="search" />
+              </a>
             </label>
           ))}
         </Card>

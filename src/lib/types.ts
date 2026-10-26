@@ -35,6 +35,8 @@ export interface Profile {
   periodLengthDays?: number
   /** Alimentos que no se deben sugerir (se buscan en el nombre y los ingredientes). */
   excludedFoods?: string[]
+  /** De dónde salen las recetas del menú automático: el plan de alimentación (por defecto) o todo el recetario. */
+  menuSource?: 'plan' | 'todo'
 }
 
 export interface Session {

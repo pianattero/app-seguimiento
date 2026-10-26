@@ -11,11 +11,62 @@ export function SettingsPage() {
   return (
     <Page title="Ajustes">
       {profile && <ProfileForm profile={profile} />}
+      {profile && <MealSettings profile={profile} />}
+      {profile && <CycleSettings profile={profile} />}
       <Card title="Apple Watch">
         <a className="row row-link" href="#/atajo">Cómo enviar los entrenos con un Atajo ›</a>
       </Card>
       <BackupCard />
     </Page>
+  )
+}
+
+function MealSettings({ profile }: { profile: Profile }) {
+  const save = (changes: Partial<Profile>) => db.profile.update('main', changes)
+  const excluded = profile.excludedFoods ?? []
+  return (
+    <Card
+      title="Comidas"
+      footer="Con «Mi plan», el menú automático y las sugeridas salen de las recetas del plan de alimentación y de tus tartas. Las demás recetas siguen en el buscador."
+    >
+      <label className="row">
+        <span>Recetas del menú</span>
+        <select value={profile.menuSource ?? 'plan'} onChange={(e) => save({ menuSource: e.target.value as Profile['menuSource'] })}>
+          <option value="plan">Mi plan</option>
+          <option value="todo">Todo el recetario</option>
+        </select>
+      </label>
+      <a className="row row-link" href="#/preferencias">
+        <span className="row-main">Alimentos que no quieres</span>
+        <span className="row-value muted">{excluded.length ? excluded.join(', ') : 'ninguno'} ›</span>
+      </a>
+    </Card>
+  )
+}
+
+function CycleSettings({ profile }: { profile: Profile }) {
+  const save = (changes: Partial<Profile>) => db.profile.update('main', changes)
+  return (
+    <Card title="Ciclo" footer="En la fase lútea el déficit baja 150 kcal. Es una sugerencia: la evidencia es limitada y cada cuerpo es distinto.">
+      <label className="row">
+        <span>Ajustar calorías por fase</span>
+        <input type="checkbox" className="switch" checked={profile.cycleAdjust !== false} onChange={(e) => save({ cycleAdjust: e.target.checked })} />
+      </label>
+      <label className="row">
+        <span>Duración habitual del ciclo</span>
+        <span className="row-value">
+          <NumberInput ariaLabel="Duración del ciclo" decimals={false} value={profile.cycleLengthDays ?? 28} onChange={(v) => v && save({ cycleLengthDays: v })} />
+          <span className="unit">días</span>
+        </span>
+      </label>
+      <label className="row">
+        <span>Días de regla</span>
+        <span className="row-value">
+          <NumberInput ariaLabel="Días de regla" decimals={false} value={profile.periodLengthDays ?? 5} onChange={(v) => v && save({ periodLengthDays: v })} />
+          <span className="unit">días</span>
+        </span>
+      </label>
+    </Card>
   )
 }
 

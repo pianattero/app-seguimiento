@@ -1,4 +1,4 @@
-import { normalize } from './recipes'
+import { normalize } from './ingredients'
 
 /** Ejercicios de fuerza habituales por grupo muscular, para elegir rápido al registrar un entreno. */
 export const exerciseGroups: { group: string; exercises: string[] }[] = [
