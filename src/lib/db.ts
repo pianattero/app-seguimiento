@@ -83,9 +83,13 @@ export async function exportBackup(database: AppDB = db): Promise<Backup> {
   }
 }
 
-/** Sustituye todos los datos por los de la copia. */
+/** Sustituye todos los datos por los de la copia. Si el archivo no es una copia válida, no se toca nada. */
 export async function importBackup(backup: Backup, database: AppDB = db): Promise<void> {
-  if (![1, 2, 3].includes(backup.version)) throw new Error('Copia de seguridad no reconocida')
+  if (!backup || typeof backup !== 'object' || ![1, 2, 3].includes(backup.version)) throw new Error('Copia de seguridad no reconocida')
+  const lists = [backup.profile, backup.sessions, backup.sets, backup.meals, backup.periods, backup.weights, backup.customRecipes]
+  if (!Array.isArray(backup.profile) || !Array.isArray(backup.sessions) || !Array.isArray(backup.sets) || lists.some((l) => l !== undefined && !Array.isArray(l))) {
+    throw new Error('El archivo está incompleto o dañado')
+  }
   const tables = [database.profile, database.sessions, database.sets, database.meals, database.periods, database.weights, database.customRecipes]
   await database.transaction('rw', tables, async () => {
     await Promise.all(tables.map((t) => t.clear()))
@@ -97,4 +101,18 @@ export async function importBackup(backup: Backup, database: AppDB = db): Promis
     await database.weights.bulkPut(backup.weights ?? [])
     await database.customRecipes.bulkPut(backup.customRecipes ?? [])
   })
+  await seedIfNeeded(database)
+}
+
+/**
+ * Pide al navegador que no borre los datos por falta de espacio o de uso.
+ * Safari borra los datos de una web que no se abre en 7 días, salvo si está añadida a la pantalla de inicio.
+ */
+export async function requestPersistentStorage(): Promise<boolean | undefined> {
+  if (!navigator.storage?.persist) return undefined
+  try {
+    return (await navigator.storage.persisted()) || (await navigator.storage.persist())
+  } catch {
+    return undefined
+  }
 }

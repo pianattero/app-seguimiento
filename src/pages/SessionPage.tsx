@@ -12,8 +12,18 @@ import { navigate } from '../lib/router'
 import { sessionTitle, statusLabel, type Session, type SessionStatus, type StrengthSet } from '../lib/types'
 
 export function SessionPage({ id }: { id: number }) {
-  const session = useLiveQuery(() => db.sessions.get(id), [id])
+  // undefined mientras carga; null si el entreno no existe (p. ej. un enlace a uno ya borrado).
+  const session = useLiveQuery(async () => (Number.isInteger(id) ? (await db.sessions.get(id)) ?? null : null), [id])
   if (session === undefined) return <Page title="Entreno">{null}</Page>
+  if (session === null) {
+    return (
+      <Page title="Entreno">
+        <Card>
+          <a className="row row-link" href="#/semana">Este entreno ya no existe. Ir a Entrenos ›</a>
+        </Card>
+      </Page>
+    )
+  }
 
   const update = (changes: Partial<Session>) => db.sessions.update(id, changes)
 

@@ -37,6 +37,8 @@ export interface Profile {
   excludedFoods?: string[]
   /** De dónde salen las recetas del menú automático: el plan de alimentación (por defecto) o todo el recetario. */
   menuSource?: 'plan' | 'todo'
+  /** Cuándo se descargó la última copia de seguridad (ISO). */
+  lastBackupAt?: string
 }
 
 export interface Session {

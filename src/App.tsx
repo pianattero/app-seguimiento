@@ -1,3 +1,4 @@
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { Icon, type IconName } from './components/Icon'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect } from 'react'
@@ -99,7 +100,9 @@ export default function App() {
   return (
     <div className="app">
       <DbBanner />
-      <main>{page}</main>
+      <main>
+        <ErrorBoundary resetKey={`${path.join('/')}?${params}`}>{page}</ErrorBoundary>
+      </main>
       <nav className="tab-bar">
         {tabs.map((t) => (
           <a key={t.key} href={`#/${t.key}`} className={activeTab === t.key ? 'active' : ''}>
