@@ -2,6 +2,10 @@
  * Recetario base. Cantidades y valores nutricionales por 1 ración (aproximados).
  * Las especias, la sal y el agua no entran en la lista de la compra.
  */
+import { cp, de, fv, lh, normalize, pan } from './ingredients'
+import { planRecipes } from './planRecipes'
+
+export { normalize, parseIngredientLines } from './ingredients'
 
 export type MealSlot = 'desayuno' | 'almuerzo' | 'merienda' | 'cena'
 export type ShopSection = 'Fruta y verdura' | 'Carne y pescado' | 'Lácteos y huevos' | 'Panadería' | 'Despensa' | 'Otros'
@@ -13,8 +17,8 @@ export const slotLabel: Record<MealSlot, string> = {
   merienda: 'Merienda',
   cena: 'Cena',
 }
-/** Parte de las calorías del día que va a cada comida. */
-export const slotShare: Record<MealSlot, number> = { desayuno: 0.25, almuerzo: 0.35, merienda: 0.1, cena: 0.3 }
+/** Parte de las calorías del día que va a cada comida: más de día y menos de noche (crononutrición del plan). */
+export const slotShare: Record<MealSlot, number> = { desayuno: 0.25, almuerzo: 0.375, merienda: 0.125, cena: 0.25 }
 
 export const shopSections: ShopSection[] = ['Fruta y verdura', 'Carne y pescado', 'Lácteos y huevos', 'Panadería', 'Despensa', 'Otros']
 
@@ -38,15 +42,13 @@ export interface Recipe {
   steps: string[]
   /** Pasos para Thermomix (TM5/TM6), cuando la receta se presta. */
   thermomix?: string[]
+  /** Sale del plan de alimentación (reparto del plato de la nutricionista). */
+  fromPlan?: boolean
+  /** Lleva su ración de hidratos (arroz, pasta, papa, pan, masa...). Las cenas sin hidratos son para días sin running. */
+  withCarbs?: boolean
 }
 
-const fv = (name: string, qty: number, unit: Ingredient['unit'] = 'g'): Ingredient => ({ name, qty, unit, section: 'Fruta y verdura' })
-const cp = (name: string, qty: number, unit: Ingredient['unit'] = 'g'): Ingredient => ({ name, qty, unit, section: 'Carne y pescado' })
-const lh = (name: string, qty: number, unit: Ingredient['unit'] = 'g'): Ingredient => ({ name, qty, unit, section: 'Lácteos y huevos' })
-const pan = (name: string, qty: number, unit: Ingredient['unit'] = 'g'): Ingredient => ({ name, qty, unit, section: 'Panadería' })
-const de = (name: string, qty: number, unit: Ingredient['unit'] = 'g'): Ingredient => ({ name, qty, unit, section: 'Despensa' })
-
-export const recipes: Recipe[] = [
+const baseRecipes: Recipe[] = [
   // Desayunos
   {
     id: 'yogur-avena-frutos-rojos',
@@ -524,6 +526,9 @@ export const recipes: Recipe[] = [
   },
 ]
 
+/** Primero las del plan de alimentación, luego el recetario general. */
+export const recipes: Recipe[] = [...planRecipes, ...baseRecipes]
+
 export const recipeById = new Map(recipes.map((r) => [r.id, r]))
 
 /** Recetas propias guardadas en el móvil; la app las registra al cargar. */
@@ -539,11 +544,6 @@ export function allRecipes(): Recipe[] {
 
 export function getRecipe(id: string): Recipe | undefined {
   return recipeById.get(id) ?? customRecipes.find((r) => r.id === id)
-}
-
-/** Minúsculas y sin tildes, para comparar textos. */
-export function normalize(text: string): string {
-  return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 }
 
 function searchableText(recipe: Recipe): string {
@@ -584,29 +584,4 @@ export function searchRecipes(query: string, excluded: string[] = []): Recipe[] 
     const text = searchableText(r)
     return isAllowed(r, excluded) && words.every((w) => text.includes(w))
   })
-}
-
-const unitWords: Record<string, { unit: Ingredient['unit']; factor: number }> = {
-  g: { unit: 'g', factor: 1 }, gr: { unit: 'g', factor: 1 }, gramos: { unit: 'g', factor: 1 }, kg: { unit: 'g', factor: 1000 },
-  ml: { unit: 'ml', factor: 1 }, l: { unit: 'ml', factor: 1000 }, litro: { unit: 'ml', factor: 1000 }, litros: { unit: 'ml', factor: 1000 },
-  ud: { unit: 'ud', factor: 1 }, uds: { unit: 'ud', factor: 1 }, unidad: { unit: 'ud', factor: 1 }, unidades: { unit: 'ud', factor: 1 },
-}
-
-/** Ingredientes escritos a mano, uno por línea: "200 g pollo", "2 huevos", "1 l leche". */
-const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
-
-export function parseIngredientLines(text: string): Ingredient[] {
-  return text
-    .split('\n')
-    .map((l) => l.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const m = line.match(/^(\d+(?:[.,]\d+)?)\s*([a-záéíóú]+)?\.?\s+(?:de\s+)?(.+)$/i)
-      if (!m) return { name: capitalize(line), qty: 1, unit: 'ud' as const, section: 'Otros' as const }
-      const qty = Number(m[1].replace(',', '.'))
-      const unit = m[2] ? unitWords[m[2].toLowerCase()] : undefined
-      // "2 huevos": la palabra no es una unidad, forma parte del nombre.
-      const name = unit || !m[2] ? m[3] : `${m[2]} ${m[3]}`
-      return { name: capitalize(name), qty: qty * (unit?.factor ?? 1), unit: unit?.unit ?? 'ud', section: 'Otros' as const }
-    })
 }

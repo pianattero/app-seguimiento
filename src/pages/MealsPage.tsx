@@ -80,7 +80,6 @@ export function MealsPage({ weekStart }: { weekStart: string }) {
 
       <Card>
         <a className="row row-link" href={`#/compra?w=${weekStart}`}><Icon name="cart" className="row-icon" /> Lista de la compra ›</a>
-        <a className="row row-link" href="#/preferencias"><Icon name="ban" className="row-icon" /> Alimentos que no quieres ›</a>
         <a className="row row-link" href="#/receta-nueva"><Icon name="plus" className="row-icon" /> Añadir una receta propia ›</a>
       </Card>
     </Page>

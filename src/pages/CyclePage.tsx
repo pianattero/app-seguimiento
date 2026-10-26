@@ -1,7 +1,7 @@
 import { Icon } from '../components/Icon'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
-import { Card, NumberInput, Page, Row } from '../components/ui'
+import { Card, Page, Row } from '../components/ui'
 import { cycleFor, phaseInfo, type CyclePhase } from '../lib/cycle'
 import { dayTitle, daysBetween, monthGrid, parseDay, today } from '../lib/dates'
 import { db } from '../lib/db'
@@ -55,35 +55,7 @@ export function CyclePage({ month }: { month?: string }) {
         ))}
       </Card>
 
-      {profile && <CycleSettings profile={profile} />}
-
     </Page>
-  )
-}
-
-function CycleSettings({ profile }: { profile: Profile }) {
-  const save = (changes: Partial<Profile>) => db.profile.update('main', changes)
-  return (
-    <Card title="Ajustes del ciclo" footer="En la fase lútea el déficit baja 150 kcal. Es una sugerencia: la evidencia es limitada y cada cuerpo es distinto.">
-      <label className="row">
-        <span>Ajustar calorías por fase</span>
-        <input type="checkbox" className="switch" checked={profile.cycleAdjust !== false} onChange={(e) => save({ cycleAdjust: e.target.checked })} />
-      </label>
-      <label className="row">
-        <span>Duración habitual del ciclo</span>
-        <span className="row-value">
-          <NumberInput ariaLabel="Duración del ciclo" decimals={false} value={profile.cycleLengthDays ?? 28} onChange={(v) => v && save({ cycleLengthDays: v })} />
-          <span className="unit">días</span>
-        </span>
-      </label>
-      <label className="row">
-        <span>Días de regla</span>
-        <span className="row-value">
-          <NumberInput ariaLabel="Días de regla" decimals={false} value={profile.periodLengthDays ?? 5} onChange={(v) => v && save({ periodLengthDays: v })} />
-          <span className="unit">días</span>
-        </span>
-      </label>
-    </Card>
   )
 }
 

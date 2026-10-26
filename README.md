@@ -14,13 +14,15 @@ App web para el móvil que sigue los entrenos de la semana (fuerza lunes y miér
 
 ## Comidas y ciclo
 
-- **Comidas**: calendario semanal (días en columnas, comidas en filas) con desayuno, almuerzo, merienda y cena. «Generar menú» elige recetas del recetario (`src/lib/recipes.ts`) y ajusta las raciones a las calorías de cada día, que dependen del entreno y de la fase del ciclo. Cada comida se puede cambiar por otra receta o por una comida libre.
+- **Comidas**: calendario semanal (días en columnas, comidas en filas) con desayuno, almuerzo, merienda y cena. «Generar menú» elige recetas del recetario (`src/lib/recipes.ts`) y ajusta las raciones a las calorías de cada día, que dependen del entreno y de la fase del ciclo. Más calorías de día que de noche (25 % desayuno, 37,5 % almuerzo, 12,5 % merienda, 25 % cena). Cada comida se puede cambiar por otra receta o por una comida libre.
 - **Recetas**: unas 50, con macros por ración e ingredientes para los dos. Los almuerzos y cenas que se prestan llevan pasos para Thermomix; desayunos y meriendas no.
 - **Buscador**: al tocar una comida se ven sugerencias según las calorías de ese hueco y un buscador por nombre o ingrediente. Si no está en el recetario, se puede buscar en Cookidoo o crear como receta propia (con sus ingredientes, que entran en la lista de la compra).
+- **Recetas del plan**: `src/lib/planRecipes.ts` sigue el reparto del plato de un plan de alimentación (desayuno y merienda: fruta, proteína e hidratos o grasa; almuerzo: ½ proteína, ¼ verdura, ¼ hidratos; cena: ½ verdura y ½ proteína, con hidratos solo los días de running) e incluye tartas (jamón y queso, zapallito, pascualina, atún). Sus kcal se calculan con la tabla de alimentos. En Ajustes se elige si el menú automático usa solo estas recetas o todo el recetario.
+- **Mercadona**: no tiene API pública para el carrito, así que la lista de la compra enlaza cada producto con el buscador de su tienda online y permite copiar lo que falta.
 - **Calorías por ingredientes**: en una receta propia o en «Otra cosa», al escribir los ingredientes con su cantidad («150 g pechuga de pollo», «2 huevos», «1 cucharada de aceite») se calculan las kcal y los macros con la tabla de `src/lib/foods.ts` (valores por 100 g). Se ve el desglose por línea y se marcan los ingredientes que no reconoce. Un valor escrito a mano tiene prioridad.
 - **No me gusta**: alimentos o grupos (curry, pescado, lácteos...) que el menú y las sugerencias evitan.
 - **Lista de la compra**: suma los ingredientes del menú de 1 o 2 semanas para las dos personas, agrupados por sección, con casillas para ir tachando.
-- **Ciclo**: calendario mensual con las fases en colores; tocar un día lo marca como inicio de regla. El inicio de cada regla se apunta a mano. Muestra fase y día del ciclo, previsión de la próxima regla y consejos de comida y entreno. En la fase lútea el déficit baja 150 kcal (se puede desactivar).
+- **Ciclo**: calendario mensual con las fases en colores; tocar un día lo marca como inicio de regla. El inicio de cada regla se apunta a mano. Muestra fase y día del ciclo, previsión de la próxima regla y consejos de comida y entreno. En la fase lútea el déficit baja 150 kcal (se puede desactivar en Ajustes, junto con la duración del ciclo).
 
 Los datos se guardan en el navegador del móvil (IndexedDB). Conviene usar la app siempre desde Safari (no desde la pantalla de inicio, porque el Atajo abre Safari) y descargar una copia de seguridad de vez en cuando.
 

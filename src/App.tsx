@@ -33,7 +33,7 @@ const tabs = [
 
 const tabIcons: Record<string, IconName> = { hoy: 'sun', semana: 'dumbbell', comidas: 'bowl', ciclo: 'moon', peso: 'scale', ajustes: 'sliders' }
 
-const tabFor: Record<string, string> = { sesion: 'semana', importar: 'semana', atajo: 'ajustes', comida: 'comidas', receta: 'comidas', compra: 'comidas', 'receta-nueva': 'comidas', preferencias: 'comidas' }
+const tabFor: Record<string, string> = { sesion: 'semana', importar: 'semana', atajo: 'ajustes', comida: 'comidas', receta: 'comidas', compra: 'comidas', 'receta-nueva': 'comidas', preferencias: 'ajustes' }
 
 export default function App() {
   const { path, params } = useRoute()

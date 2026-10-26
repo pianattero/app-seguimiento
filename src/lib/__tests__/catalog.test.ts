@@ -37,7 +37,7 @@ describe('filtro de alimentos', () => {
     let seed = 7
     const random = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646
     for (let i = 0; i < 50; i++) {
-      expect(pickRecipe('almuerzo', [], undefined, random, ['curry']).id).not.toBe('pollo-curry-arroz')
+      expect(pickRecipe('almuerzo', [], undefined, random, { excluded: ['curry'] }).id).not.toBe('pollo-curry-arroz')
     }
   })
 })

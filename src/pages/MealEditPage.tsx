@@ -58,10 +58,13 @@ export function MealEditPage({ day, slot }: { day: string; slot: MealSlot }) {
   const excluded = profile?.excludedFoods ?? []
 
   const forSlot = recipesFor(slot, excluded)
-  // Sugeridas: las que mejor encajan con las calorías de esta comida sin cambiar mucho las raciones.
+  // Sugeridas: del plan de alimentación (salvo que en Ajustes se elija todo el recetario),
+  // las que mejor encajan con las calorías de esta comida sin cambiar mucho las raciones.
+  const fromPlan = forSlot.filter((r) => r.fromPlan)
+  const pool = profile?.menuSource !== 'todo' && fromPlan.length >= 3 ? fromPlan : forSlot
   const suggested = slotKcal
-    ? [...forSlot].sort((a, b) => Math.abs(Math.log(slotKcal / a.kcal)) - Math.abs(Math.log(slotKcal / b.kcal))).slice(0, 5)
-    : forSlot.slice(0, 5)
+    ? [...pool].sort((a, b) => Math.abs(Math.log(slotKcal / a.kcal)) - Math.abs(Math.log(slotKcal / b.kcal))).slice(0, 5)
+    : pool.slice(0, 5)
   const results = query.trim() ? searchRecipes(query, excluded) : []
 
   async function choose(r: Recipe) {
@@ -92,7 +95,7 @@ export function MealEditPage({ day, slot }: { day: string; slot: MealSlot }) {
   const option = (r: Recipe) => (
     <button key={r.id} className={`row row-button recipe-option${r.id === recipe?.id ? ' selected' : ''}`} onClick={() => choose(r)}>
       <span className="row-main">
-        <span>{r.name}{r.thermomix && slot !== 'desayuno' && slot !== 'merienda' ? ' · Thermomix' : ''}{r.id.startsWith('propia-') ? ' · propia' : ''}</span>
+        <span>{r.name}{r.thermomix && slot !== 'desayuno' && slot !== 'merienda' ? ' · Thermomix' : ''}{r.id.startsWith('propia-') ? ' · propia' : ''}{r.fromPlan ? ' · plan' : ''}</span>
         <small className="muted">{r.kcal} kcal · {r.proteinG} g proteína · {r.minutes} min</small>
       </span>
     </button>
@@ -151,7 +154,7 @@ export function MealEditPage({ day, slot }: { day: string; slot: MealSlot }) {
         </Card>
       ) : (
         <>
-          <Card title="Sugeridas" aside="encajan con tus calorías">
+          <Card title="Sugeridas" aside={pool === fromPlan ? 'de tu plan, según tus calorías' : 'encajan con tus calorías'}>
             {suggested.map(option)}
           </Card>
           <Card
