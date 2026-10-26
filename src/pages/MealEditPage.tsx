@@ -8,12 +8,16 @@ import { planForDay } from '../lib/dayPlan'
 import { db } from '../lib/db'
 import { nutritionFromText } from '../lib/foods'
 import { formatNumber } from '../lib/format'
-import { mealNutrition, suggestPortions } from '../lib/meals'
+import { mealNutrition, pickSide, suggestPortions } from '../lib/meals'
 import { sessionsInWeek } from '../lib/planner'
-import { getRecipe, recipesFor, searchRecipes, slotLabel, slotShare, type MealSlot, type Recipe } from '../lib/recipes'
+import { getRecipe, recipesFor, searchRecipes, sidesFor, slotLabel, slotShare, type MealSlot, type Recipe } from '../lib/recipes'
 import { navigate } from '../lib/router'
 
+/** Para comparar con las kcal de la comida, un plato que va con guarnición cuenta una guarnición media. */
+const withSideKcal = (r: Recipe) => r.kcal + (r.needsSide ? 130 : 0)
+
 const noCustom = {
+  sideId: undefined,
   customName: undefined,
   customKcal: undefined,
   customProteinG: undefined,
@@ -63,16 +67,30 @@ export function MealEditPage({ day, slot }: { day: string; slot: MealSlot }) {
   const fromPlan = forSlot.filter((r) => r.fromPlan)
   const pool = profile?.menuSource !== 'todo' && fromPlan.length >= 3 ? fromPlan : forSlot
   const suggested = slotKcal
-    ? [...pool].sort((a, b) => Math.abs(Math.log(slotKcal / a.kcal)) - Math.abs(Math.log(slotKcal / b.kcal))).slice(0, 5)
+    ? [...pool].sort((a, b) => Math.abs(Math.log(slotKcal / withSideKcal(a))) - Math.abs(Math.log(slotKcal / withSideKcal(b)))).slice(0, 5)
     : pool.slice(0, 5)
   const results = query.trim() ? searchRecipes(query, excluded) : []
 
+  const side = meal?.sideId ? getRecipe(meal.sideId) : undefined
+  const [showSides, setShowSides] = useState(false)
+
   async function choose(r: Recipe) {
-    const portions = slotKcal ? suggestPortions(r, slotKcal) : 1
-    if (meal?.id) await db.meals.update(meal.id, { recipeId: r.id, ...noCustom, portions })
-    else await db.meals.add({ day, slot, recipeId: r.id, portions })
+    // Se mantiene la guarnición que ya había si encaja (nada de papa con milanesa o tarta); si no, se elige otra.
+    const keep = side && !(r.withCarbs && side.withCarbs) ? side : undefined
+    const newSide = r.needsSide ? (keep ?? pickSide(r, slot, Math.random, { excluded })) : undefined
+    const portions = slotKcal ? suggestPortions(r, slotKcal, newSide) : 1
+    if (meal?.id) await db.meals.update(meal.id, { ...noCustom, recipeId: r.id, sideId: newSide?.id, portions })
+    else await db.meals.add({ day, slot, recipeId: r.id, sideId: newSide?.id, portions })
     navigate(back)
   }
+
+  const setSide = async (s?: Recipe) => {
+    if (meal?.id) await db.meals.update(meal.id, { sideId: s?.id })
+    setShowSides(false)
+  }
+  // Las que encajan con el plan van primero: verdura si el plato ya lleva hidratos, con hidratos en el almuerzo si no.
+  const sideFits = (s: Recipe) => (recipe?.withCarbs ? !s.withCarbs : slot === 'almuerzo' ? !!s.withCarbs : true)
+  const sides = [...sidesFor(excluded)].sort((a, b) => Number(sideFits(b)) - Number(sideFits(a)))
 
   async function saveCustom() {
     if (!customName.trim()) return
@@ -96,7 +114,7 @@ export function MealEditPage({ day, slot }: { day: string; slot: MealSlot }) {
     <button key={r.id} className={`row row-button recipe-option${r.id === recipe?.id ? ' selected' : ''}`} onClick={() => choose(r)}>
       <span className="row-main">
         <span>{r.name}{r.thermomix && slot !== 'desayuno' && slot !== 'merienda' ? ' · Thermomix' : ''}{r.id.startsWith('propia-') ? ' · propia' : ''}{r.fromPlan ? ' · plan' : ''}</span>
-        <small className="muted">{r.kcal} kcal · {r.proteinG} g proteína · {r.minutes} min</small>
+        <small className="muted">{r.kcal} kcal · {r.proteinG} g proteína · {r.minutes} min{r.needsSide ? ' · + guarnición' : ''}</small>
       </span>
     </button>
   )
@@ -110,7 +128,7 @@ export function MealEditPage({ day, slot }: { day: string; slot: MealSlot }) {
 
       {meal && (
         <Card title="Ahora">
-          <Row label={recipe?.name ?? meal.customName} value={`${formatNumber(mealNutrition(meal).kcal)} kcal`} />
+          <Row label={side && recipe ? `${recipe.name} + ${side.name.toLowerCase()}` : recipe?.name ?? meal.customName} value={`${formatNumber(mealNutrition(meal).kcal)} kcal`} />
           {recipe && (
             <>
               <div className="row">
@@ -121,12 +139,34 @@ export function MealEditPage({ day, slot }: { day: string; slot: MealSlot }) {
                   <button className="icon-button" aria-label="Más" onClick={() => setPortions(meal.portions + 0.25)}><Icon name="plus" /></button>
                 </span>
               </div>
-              <a className="row row-link" href={`#/receta/${recipe.id}?r=${meal.portions}`}>Ver receta e ingredientes ›</a>
+              <a className="row row-link" href={`#/receta/${recipe.id}?r=${meal.portions}${side ? `&g=${side.id}` : ''}`}>Ver receta e ingredientes ›</a>
             </>
           )}
           <button className="row row-button danger" onClick={async () => { await db.meals.delete(meal.id!); navigate(back) }}>
             Quitar esta comida
           </button>
+        </Card>
+      )}
+
+      {meal && recipe && (recipe.needsSide || side) && (
+        <Card title="Guarnición" footer={recipe.withCarbs ? 'Este plato ya lleva hidratos: según tu plan, mejor una guarnición de verdura.' : slot === 'almuerzo' ? 'En el almuerzo tu plan suma ¼ de hidratos: papa, batata, arroz o choclo.' : undefined}>
+          <button className="row row-button" onClick={() => setShowSides(!showSides)} aria-expanded={showSides}>
+            <span className="row-main">{side ? side.name : 'Sin guarnición'}</span>
+            <span className="row-value">{side ? `${formatNumber(side.kcal * meal.portions)} kcal · ` : ''}{showSides ? 'Cerrar' : 'Cambiar'}</span>
+          </button>
+          {showSides && (
+            <>
+              {sides.map((s) => (
+                <button key={s.id} className={`row row-button recipe-option${s.id === side?.id ? ' selected' : ''}`} onClick={() => setSide(s)}>
+                  <span className="row-main">
+                    <span>{s.name}</span>
+                    <small className="muted">{s.kcal} kcal{sideFits(s) ? ' · encaja con tu plan' : ''}</small>
+                  </span>
+                </button>
+              ))}
+              <button className="row row-button" onClick={() => setSide(undefined)}>Sin guarnición</button>
+            </>
+          )}
         </Card>
       )}
 

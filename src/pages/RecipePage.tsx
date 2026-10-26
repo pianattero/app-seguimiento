@@ -8,9 +8,10 @@ import { useState } from 'react'
 const unitText = { g: 'g', ml: 'ml', ud: '' }
 const raciones = (n: number) => `${formatNumber(n, 2)} ${n === 1 ? 'ración' : 'raciones'}`
 
-export function RecipePage({ id, portions }: { id: string; portions: number }) {
+export function RecipePage({ id, sideId, portions }: { id: string; sideId?: string; portions: number }) {
   const custom = useLiveQuery(() => db.customRecipes.get(id), [id])
   const recipe = getRecipe(id) ?? custom
+  const side = sideId ? getRecipe(sideId) : undefined
   const profile = useLiveQuery(() => db.profile.get('main'))
   const [confirmDelete, setConfirmDelete] = useState(false)
   if (!recipe) return <Page title="Receta">{null}</Page>
@@ -19,11 +20,12 @@ export function RecipePage({ id, portions }: { id: string; portions: number }) {
 
   return (
     <Page title={recipe.name} actions={<button className="text-button" onClick={() => history.back()}>Volver</button>}>
-      <Card title="Por ración" aside={`${recipe.minutes} min`}>
-        <Row label="Calorías" value={`${recipe.kcal} kcal`} />
-        <Row label="Proteína" value={`${recipe.proteinG} g`} />
-        <Row label="Hidratos" value={`${recipe.carbsG} g`} />
-        <Row label="Grasa" value={`${recipe.fatG} g`} />
+      <Card title={side ? 'Por ración, con la guarnición' : 'Por ración'} aside={`${recipe.minutes} min`}>
+        <Row label="Calorías" value={`${recipe.kcal + (side?.kcal ?? 0)} kcal`} />
+        <Row label="Proteína" value={`${recipe.proteinG + (side?.proteinG ?? 0)} g`} />
+        <Row label="Hidratos" value={`${recipe.carbsG + (side?.carbsG ?? 0)} g`} />
+        <Row label="Grasa" value={`${recipe.fatG + (side?.fatG ?? 0)} g`} />
+        {side && <Row label={`Solo ${recipe.name.toLowerCase()}`} value={`${recipe.kcal} kcal`} />}
       </Card>
 
       <Card
@@ -49,6 +51,25 @@ export function RecipePage({ id, portions }: { id: string; portions: number }) {
         <Card title={recipe.thermomix ? 'Sin Thermomix' : 'Preparación'}>
           <ol className="steps">{recipe.steps.map((s) => <li key={s}>{s}</li>)}</ol>
         </Card>
+      )}
+
+      {side && (
+        <>
+          <Card title={`Guarnición: ${side.name.toLowerCase()}`}>
+            {side.ingredients.map((ing) => (
+              <Row
+                key={ing.name}
+                label={ing.name}
+                value={`${formatNumber(ing.unit === 'ud' ? Math.round(ing.qty * total * 2) / 2 : Math.round(ing.qty * total / 5) * 5, 1)} ${unitText[ing.unit]}`.trim()}
+              />
+            ))}
+          </Card>
+          {side.steps.length > 0 && (
+            <Card title="Preparación de la guarnición">
+              <ol className="steps">{side.steps.map((s) => <li key={s}>{s}</li>)}</ol>
+            </Card>
+          )}
+        </>
       )}
 
       {custom && (

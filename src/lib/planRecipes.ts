@@ -16,6 +16,8 @@ interface PlanRecipe {
   ingredients: Ingredient[]
   steps: string[]
   withCarbs?: boolean
+  needsSide?: boolean
+  side?: boolean
 }
 
 function planRecipe(r: PlanRecipe): Recipe {
@@ -25,7 +27,6 @@ function planRecipe(r: PlanRecipe): Recipe {
 
 const fruta = fv('Fruta de temporada', 1, 'ud')
 const aceite = (ml: number) => de('Aceite de oliva', ml, 'ml')
-const ensalada = [fv('Lechuga', 60), fv('Tomate', 1, 'ud')]
 const masa = pan('Masa quebrada', 0.25, 'ud')
 const main: MealSlot[] = ['almuerzo', 'cena']
 
@@ -134,74 +135,145 @@ const list: PlanRecipe[] = [
     steps: ['Ideal para la oficina: una barrita de cereal y una fruta.'],
   },
 
-  // Almuerzos y cenas con hidratos (1 vaso de agua 30 minutos antes)
+  // Platos de almuerzo y cena que se acompañan con una guarnición (1 vaso de agua 30 minutos antes)
   {
-    id: 'milanesa-carne-ensalada',
-    name: 'Milanesa de carne al horno con ensalada de lechuga y tomate',
+    id: 'milanesa-carne',
+    name: 'Milanesa de carne al horno',
     slots: main,
-    minutes: 30,
+    minutes: 25,
     withCarbs: true,
-    ingredients: [cp('Filete de ternera fino', 150), de('Pan rallado', 25), lh('Huevos', 0.5, 'ud'), ...ensalada, aceite(10)],
+    needsSide: true,
+    ingredients: [cp('Filete de ternera fino', 150), de('Pan rallado', 25), lh('Huevos', 0.5, 'ud'), aceite(5)],
     steps: [
       'Pasa la carne por huevo batido y pan rallado.',
       'Hornea a 200 °C unos 20 minutos, dándole la vuelta a la mitad.',
-      'Sirve con la ensalada aliñada con una cucharada de aceite. La milanesa ya es el hidrato: sin papa ni arroz.',
+      'La milanesa ya es el hidrato: mejor con una guarnición de verdura, sin papa ni arroz.',
     ],
   },
   {
-    id: 'milanesa-pollo-rucula',
-    name: 'Milanesa de pollo con ensalada de rúcula y zanahoria',
+    id: 'milanesa-pollo',
+    name: 'Milanesa de pollo al horno',
     slots: main,
-    minutes: 30,
+    minutes: 25,
     withCarbs: true,
-    ingredients: [cp('Pechuga de pollo en filetes', 150), de('Pan rallado', 25), lh('Huevos', 0.5, 'ud'), fv('Rúcula', 40), fv('Zanahoria', 1, 'ud'), aceite(10)],
-    steps: ['Empana el pollo con huevo y pan rallado.', 'Hornea a 200 °C unos 20 minutos.', 'Sirve con rúcula y zanahoria rallada aliñadas con aceite.'],
+    needsSide: true,
+    ingredients: [cp('Pechuga de pollo en filetes', 150), de('Pan rallado', 25), lh('Huevos', 0.5, 'ud'), aceite(5)],
+    steps: ['Empana el pollo con huevo y pan rallado.', 'Hornea a 200 °C unos 20 minutos.', 'Mejor con una guarnición de verdura.'],
   },
   {
-    id: 'milanesa-pollo-pure-zapallo',
-    name: 'Milanesa de pollo con puré de zapallo',
+    id: 'pechuga-pollo',
+    name: 'Pechuga de pollo a la plancha',
     slots: main,
-    minutes: 35,
-    withCarbs: true,
-    ingredients: [cp('Pechuga de pollo en filetes', 150), de('Pan rallado', 25), lh('Huevos', 0.5, 'ud'), fv('Calabaza', 250), aceite(5)],
-    steps: ['Cuece la calabaza en dados al vapor o en el microondas y písala con el aceite, sal y nuez moscada.', 'Empana y hornea el pollo a 200 °C unos 20 minutos.'],
+    minutes: 15,
+    needsSide: true,
+    ingredients: [cp('Pechuga de pollo', 160), aceite(5)],
+    steps: ['Haz la pechuga a la plancha o al horno (200 °C, 15 minutos) con sal, pimienta y orégano.'],
   },
   {
-    id: 'pollo-papas-calabaza',
-    name: 'Pechuga de pollo con papas y calabaza al horno',
+    id: 'carne-plancha',
+    name: 'Carne a la plancha',
     slots: main,
-    minutes: 40,
-    withCarbs: true,
-    ingredients: [cp('Pechuga de pollo', 160), fv('Patata', 150), fv('Calabaza', 150), aceite(10)],
-    steps: ['Corta la papa y la calabaza en gajos, aliña con aceite, sal y romero.', 'Hornea a 200 °C 35 minutos; a los 15 minutos añade el pollo.'],
+    minutes: 15,
+    needsSide: true,
+    ingredients: [cp('Filete de ternera', 160), aceite(5)],
+    steps: ['Haz la carne a la plancha bien caliente, 2 o 3 minutos por lado.'],
   },
   {
-    id: 'carne-papas-calabaza',
-    name: 'Carne con papas y calabaza al horno',
-    slots: main,
-    minutes: 40,
-    withCarbs: true,
-    ingredients: [cp('Ternera para asar', 160), fv('Patata', 150), fv('Calabaza', 150), aceite(10)],
-    steps: ['Hornea la papa y la calabaza en gajos con aceite a 200 °C 35 minutos.', 'Haz la carne a la plancha o al horno los últimos 10 minutos.'],
-  },
-  {
-    id: 'merluza-papas-tomate',
-    name: 'Filet de merluza con papas al horno y tomate con orégano',
-    slots: main,
-    minutes: 35,
-    withCarbs: true,
-    ingredients: [cp('Merluza en filetes', 180), fv('Patata', 150), fv('Tomate', 1, 'ud'), aceite(10)],
-    steps: ['Hornea la papa en rodajas con la mitad del aceite a 200 °C 25 minutos.', 'Pon la merluza encima y hornea 10 minutos más.', 'Sirve con el tomate en rodajas, orégano y el resto del aceite.'],
-  },
-  {
-    id: 'pollo-ensalada-choclo',
-    name: 'Pechuga de pollo con ensalada de choclo, zanahoria y tomate',
+    id: 'solomillo-cerdo',
+    name: 'Solomillo de cerdo',
     slots: main,
     minutes: 20,
-    withCarbs: true,
-    ingredients: [cp('Pechuga de pollo', 160), de('Maíz dulce', 80), fv('Zanahoria', 1, 'ud'), fv('Tomate', 1, 'ud'), aceite(10)],
-    steps: ['Haz el pollo a la plancha.', 'Mezcla el choclo con la zanahoria rallada y el tomate, y aliña con aceite.'],
+    needsSide: true,
+    ingredients: [cp('Solomillo de cerdo', 160), aceite(5)],
+    steps: ['Dora el solomillo en la sartén y termínalo al horno 15 minutos a 200 °C.'],
   },
+  {
+    id: 'merluza',
+    name: 'Filet de merluza al horno',
+    slots: main,
+    minutes: 15,
+    needsSide: true,
+    ingredients: [cp('Merluza en filetes', 180), aceite(5)],
+    steps: ['Hornea la merluza a 200 °C unos 10 minutos con limón, ajo y perejil.'],
+  },
+  {
+    id: 'omelette-atun-queso',
+    name: 'Omelette de atún y queso',
+    slots: main,
+    minutes: 10,
+    needsSide: true,
+    ingredients: [lh('Huevos', 2, 'ud'), de('Atún al natural', 1, 'ud'), lh('Queso tierno (tipo port salut)', 30), aceite(3)],
+    steps: ['Cuaja los huevos batidos, rellena con el atún y el queso y dobla.'],
+  },
+  {
+    id: 'budin-atun',
+    name: 'Budín de atún',
+    slots: main,
+    minutes: 40,
+    needsSide: true,
+    ingredients: [de('Atún al natural', 2, 'ud'), lh('Huevos', 2, 'ud'), fv('Cebolla', 40), fv('Pimiento rojo', 40), lh('Queso rallado', 10)],
+    steps: ['Mezcla el atún escurrido con los huevos batidos, la cebolla y el morrón picados y el queso.', 'Hornea en un molde a 180 °C 25 a 30 minutos.'],
+  },
+
+  // Tartas: ¼ de una tarta de una tapa
+  {
+    id: 'tarta-jamon-queso',
+    name: 'Tarta de jamón y queso',
+    slots: main,
+    minutes: 45,
+    withCarbs: true,
+    needsSide: true,
+    ingredients: [masa, cp('Jamón cocido', 40), lh('Queso tierno (tipo port salut)', 40), lh('Huevos', 0.5, 'ud'), lh('Leche desnatada', 30, 'ml')],
+    steps: [
+      'Forra un molde con la masa (una sola tapa) y pínchala con un tenedor.',
+      'Reparte el jamón y el queso. Bate 2 huevos con 120 ml de leche, sal y pimienta, y viértelo encima.',
+      'Hornea a 180 °C unos 30 minutos, hasta que cuaje. Una ración es ¼ de tarta.',
+    ],
+  },
+  {
+    id: 'tarta-zapallito',
+    name: 'Tarta de zapallito',
+    slots: main,
+    minutes: 50,
+    withCarbs: true,
+    needsSide: true,
+    ingredients: [masa, fv('Calabacín', 200), fv('Cebolla', 50), lh('Huevos', 1, 'ud'), lh('Queso rallado', 15), aceite(3)],
+    steps: [
+      'Ralla o corta en cubos los zapallitos y rehógalos con la cebolla y el aceite hasta que suelten el agua.',
+      'Mezcla con 4 huevos batidos y el queso rallado.',
+      'Vierte sobre la masa (una tapa) y hornea a 180 °C unos 35 minutos. Una ración es ¼ de tarta.',
+    ],
+  },
+  {
+    id: 'pascualina',
+    name: 'Pascualina',
+    slots: main,
+    minutes: 55,
+    withCarbs: true,
+    needsSide: true,
+    ingredients: [masa, fv('Acelgas o espinacas', 200), fv('Cebolla', 40), lh('Huevos', 1, 'ud'), lh('Requesón (ricota)', 40), lh('Queso rallado', 10), aceite(3)],
+    steps: [
+      'Saltea la cebolla con el aceite, añade la acelga o espinaca picada y cocina hasta que pierda el agua.',
+      'Mezcla con la ricota, el queso rallado y sal. Ponlo sobre la masa (una tapa) y hunde 4 huevos enteros.',
+      'Hornea a 180 °C unos 35 minutos. Una ración es ¼ de tarta. Si la haces con tapa arriba, suma unas 250 kcal por ración.',
+    ],
+  },
+  {
+    id: 'tarta-atun',
+    name: 'Tarta de atún',
+    slots: main,
+    minutes: 45,
+    withCarbs: true,
+    needsSide: true,
+    ingredients: [masa, de('Atún al natural', 1, 'ud'), fv('Cebolla', 40), fv('Pimiento rojo', 40), de('Tomate triturado', 40), lh('Huevos', 0.5, 'ud'), aceite(3)],
+    steps: [
+      'Rehoga la cebolla y el morrón, añade el tomate y el atún escurrido.',
+      'Fuera del fuego mezcla con 2 huevos batidos y ponlo sobre la masa (una tapa).',
+      'Hornea a 180 °C unos 30 minutos. Una ración es ¼ de tarta.',
+    ],
+  },
+
+  // Platos completos, que ya llevan su verdura
   {
     id: 'wok-pollo-arroz',
     name: 'Wok de pollo, arroz integral y verduras',
@@ -210,6 +282,15 @@ const list: PlanRecipe[] = [
     withCarbs: true,
     ingredients: [cp('Pechuga de pollo', 150), de('Arroz integral', 50), fv('Calabacín', 100), fv('Pimiento rojo', 80), fv('Berenjena', 80), fv('Cebolla', 50), aceite(10), de('Salsa de soja', 10, 'ml')],
     steps: ['Cuece el arroz (¼ de taza en crudo por persona).', 'Saltea a fuego fuerte el pollo en tiras con el aceite y retira.', 'Saltea la verdura en tiras, vuelve a poner el pollo, añade la soja y el arroz.'],
+  },
+  {
+    id: 'churrasquitos-arroz',
+    name: 'Churrasquitos de carne con arroz integral y verduras salteadas',
+    slots: main,
+    minutes: 30,
+    withCarbs: true,
+    ingredients: [cp('Filete de ternera', 150), de('Arroz integral', 50), fv('Pimiento rojo', 80), fv('Zanahoria', 1, 'ud'), fv('Cebolla', 50), aceite(10)],
+    steps: ['Cuece el arroz.', 'Saltea el morrón, la zanahoria y la cebolla en tiras con el aceite.', 'Haz la carne en tiras a la plancha y mezcla con el arroz y las verduras.'],
   },
   {
     id: 'ensalada-atun-quinoa',
@@ -230,15 +311,6 @@ const list: PlanRecipe[] = [
     steps: ['Mezcla todo con la zanahoria rallada y aliña con aceite.'],
   },
   {
-    id: 'churrasquitos-arroz',
-    name: 'Churrasquitos de carne con arroz integral y verduras salteadas',
-    slots: main,
-    minutes: 30,
-    withCarbs: true,
-    ingredients: [cp('Filete de ternera', 150), de('Arroz integral', 50), fv('Pimiento rojo', 80), fv('Zanahoria', 1, 'ud'), fv('Cebolla', 50), aceite(10)],
-    steps: ['Cuece el arroz.', 'Saltea el morrón, la zanahoria y la cebolla en tiras con el aceite.', 'Haz la carne en tiras a la plancha y mezcla con el arroz y las verduras.'],
-  },
-  {
     id: 'tacos-pollo',
     name: 'Tacos de pollo y verduras',
     slots: main,
@@ -248,127 +320,6 @@ const list: PlanRecipe[] = [
     steps: ['Saltea el pollo en tiras con la cebolla y el morrón, con pimentón y comino.', 'Calienta las tortillas y rellénalas con el pollo, tomate y lechuga.'],
   },
   {
-    id: 'fideos-pollo-verduras',
-    name: 'Fideos integrales con verduras y pollo en cubos',
-    slots: main,
-    minutes: 25,
-    withCarbs: true,
-    ingredients: [de('Pasta integral (tirabuzón)', 60), cp('Pechuga de pollo', 140), fv('Calabacín', 100), fv('Pimiento rojo', 60), fv('Cebolla', 40), aceite(10)],
-    steps: ['Cuece los fideos (½ taza en crudo por persona).', 'Saltea el pollo en cubos y las verduras con el aceite.', 'Mezcla con los fideos.'],
-  },
-
-  // Tartas: ¼ de una tarta de una tapa, con ensalada
-  {
-    id: 'tarta-jamon-queso',
-    name: 'Tarta de jamón y queso con ensalada',
-    slots: main,
-    minutes: 45,
-    withCarbs: true,
-    ingredients: [masa, cp('Jamón cocido', 40), lh('Queso tierno (tipo port salut)', 40), lh('Huevos', 0.5, 'ud'), lh('Leche desnatada', 30, 'ml'), ...ensalada, aceite(5)],
-    steps: [
-      'Forra un molde con la masa (una sola tapa) y pínchala con un tenedor.',
-      'Reparte el jamón y el queso. Bate 2 huevos con 120 ml de leche, sal y pimienta, y viértelo encima.',
-      'Hornea a 180 °C unos 30 minutos, hasta que cuaje. Una ración es ¼ de tarta.',
-    ],
-  },
-  {
-    id: 'tarta-zapallito',
-    name: 'Tarta de zapallito con ensalada',
-    slots: main,
-    minutes: 50,
-    withCarbs: true,
-    ingredients: [masa, fv('Calabacín', 200), fv('Cebolla', 50), lh('Huevos', 1, 'ud'), lh('Queso rallado', 15), ...ensalada, aceite(5)],
-    steps: [
-      'Ralla o corta en cubos los zapallitos y rehógalos con la cebolla y el aceite hasta que suelten el agua.',
-      'Mezcla con 4 huevos batidos y el queso rallado.',
-      'Vierte sobre la masa (una tapa) y hornea a 180 °C unos 35 minutos. Una ración es ¼ de tarta.',
-    ],
-  },
-  {
-    id: 'pascualina',
-    name: 'Pascualina con ensalada',
-    slots: main,
-    minutes: 55,
-    withCarbs: true,
-    ingredients: [masa, fv('Acelgas o espinacas', 200), fv('Cebolla', 40), lh('Huevos', 1, 'ud'), lh('Requesón (ricota)', 40), lh('Queso rallado', 10), ...ensalada, aceite(5)],
-    steps: [
-      'Saltea la cebolla con el aceite, añade la acelga o espinaca picada y cocina hasta que pierda el agua.',
-      'Mezcla con la ricota, el queso rallado y sal. Ponlo sobre la masa (una tapa) y hunde 4 huevos enteros.',
-      'Hornea a 180 °C unos 35 minutos. Una ración es ¼ de tarta. Si la haces con tapa arriba, suma unas 250 kcal por ración.',
-    ],
-  },
-  {
-    id: 'tarta-atun',
-    name: 'Tarta de atún con ensalada',
-    slots: main,
-    minutes: 45,
-    withCarbs: true,
-    ingredients: [masa, de('Atún al natural', 1, 'ud'), fv('Cebolla', 40), fv('Pimiento rojo', 40), de('Tomate triturado', 40), lh('Huevos', 0.5, 'ud'), ...ensalada, aceite(5)],
-    steps: [
-      'Rehoga la cebolla y el morrón, añade el tomate y el atún escurrido.',
-      'Fuera del fuego mezcla con 2 huevos batidos y ponlo sobre la masa (una tapa).',
-      'Hornea a 180 °C unos 30 minutos. Una ración es ¼ de tarta.',
-    ],
-  },
-
-  // Cenas sin hidratos: ½ verdura y ½ proteína (también valen de almuerzo)
-  {
-    id: 'pollo-verduras-horno',
-    name: 'Pechuga de pollo con verduras al horno (zapallo, morrón y cebolla)',
-    slots: main,
-    minutes: 40,
-    ingredients: [cp('Pechuga de pollo', 160), fv('Calabaza', 150), fv('Pimiento rojo', 100), fv('Cebolla', 80), aceite(10)],
-    steps: ['Corta la verdura, aliña con aceite y sal y hornea a 200 °C 30 minutos.', 'Añade el pollo los últimos 15 minutos.'],
-  },
-  {
-    id: 'pollo-revuelto-zapallitos',
-    name: 'Pechuga de pollo con revuelto de zapallitos',
-    slots: main,
-    minutes: 25,
-    ingredients: [cp('Pechuga de pollo', 150), fv('Calabacín', 200), fv('Zanahoria', 1, 'ud'), lh('Huevos', 1, 'ud'), aceite(5)],
-    steps: ['Saltea el zapallito y la zanahoria en tiras con el aceite.', 'Añade el huevo batido y revuelve hasta que cuaje.', 'Sirve con el pollo a la plancha.'],
-  },
-  {
-    id: 'solomillo-cerdo-ensalada',
-    name: 'Solomillo de cerdo con ensalada de zanahoria y huevo',
-    slots: main,
-    minutes: 25,
-    ingredients: [cp('Solomillo de cerdo', 160), fv('Zanahoria', 1, 'ud'), lh('Huevos', 1, 'ud'), fv('Lechuga', 50), aceite(10)],
-    steps: ['Haz el solomillo a la plancha o al horno 15 minutos a 200 °C.', 'Sirve con la zanahoria rallada, la lechuga y el huevo duro, con aceite.'],
-  },
-  {
-    id: 'merluza-verduras-horno',
-    name: 'Filet de merluza con berenjena, zucchini y morrón al horno',
-    slots: main,
-    minutes: 35,
-    ingredients: [cp('Merluza en filetes', 180), fv('Berenjena', 100), fv('Calabacín', 100), fv('Pimiento rojo', 80), aceite(10)],
-    steps: ['Hornea la verdura en rodajas con el aceite a 200 °C 20 minutos.', 'Pon la merluza encima y hornea 10 minutos más.'],
-  },
-  {
-    id: 'carne-pure-calabaza-zanahoria',
-    name: 'Carne a la plancha con puré de calabaza y zanahoria',
-    slots: main,
-    minutes: 30,
-    ingredients: [cp('Filete de ternera', 160), fv('Calabaza', 200), fv('Zanahoria', 1, 'ud'), aceite(5)],
-    steps: ['Cuece la calabaza y la zanahoria y písalas con el aceite.', 'Haz la carne a la plancha.'],
-  },
-  {
-    id: 'budin-atun',
-    name: 'Budín de atún con ensalada de lechuga y tomate',
-    slots: main,
-    minutes: 40,
-    ingredients: [de('Atún al natural', 2, 'ud'), lh('Huevos', 2, 'ud'), fv('Cebolla', 40), fv('Pimiento rojo', 40), lh('Queso rallado', 10), ...ensalada, aceite(5)],
-    steps: ['Mezcla el atún escurrido con los huevos batidos, la cebolla y el morrón picados y el queso.', 'Hornea en un molde a 180 °C 25 a 30 minutos.', 'Sirve con la ensalada.'],
-  },
-  {
-    id: 'omelette-atun-queso',
-    name: 'Omelette de atún y queso con ensalada de repollo y zanahoria',
-    slots: main,
-    minutes: 15,
-    ingredients: [lh('Huevos', 2, 'ud'), de('Atún al natural', 1, 'ud'), lh('Queso tierno (tipo port salut)', 30), fv('Repollo (col)', 100), fv('Zanahoria', 1, 'ud'), aceite(5)],
-    steps: ['Cuaja los huevos batidos, rellena con el atún y el queso y dobla.', 'Sirve con el repollo en juliana y la zanahoria rallada, con aceite y limón.'],
-  },
-  {
     id: 'tacos-carne-verduras',
     name: 'Tacos de carne con verduras',
     slots: main,
@@ -376,6 +327,15 @@ const list: PlanRecipe[] = [
     withCarbs: true,
     ingredients: [pan('Tortillas de maíz', 2, 'ud'), cp('Carne picada de ternera', 130), fv('Pimiento rojo', 80), fv('Cebolla', 60), fv('Tomate', 1, 'ud'), aceite(5)],
     steps: ['Saltea la cebolla y el morrón, añade la carne con comino y pimentón.', 'Rellena las tortillas calientes con la carne y el tomate picado.'],
+  },
+  {
+    id: 'fideos-pollo-verduras',
+    name: 'Fideos integrales con verduras y pollo en cubos',
+    slots: main,
+    minutes: 25,
+    withCarbs: true,
+    ingredients: [de('Pasta integral (tirabuzón)', 60), cp('Pechuga de pollo', 140), fv('Calabacín', 100), fv('Pimiento rojo', 60), fv('Cebolla', 40), aceite(10)],
+    steps: ['Cuece los fideos (½ taza en crudo por persona).', 'Saltea el pollo en cubos y las verduras con el aceite.', 'Mezcla con los fideos.'],
   },
   {
     id: 'pastel-zapallo',
@@ -389,6 +349,46 @@ const list: PlanRecipe[] = [
       'Pon la carne en una fuente, cubre con el puré y el queso y gratina 15 minutos a 200 °C.',
     ],
   },
+
+  // Guarniciones: se eligen aparte para los platos que las necesitan
+  { id: 'g-ensalada-lechuga-tomate', name: 'Ensalada de lechuga y tomate', slots: [], side: true, minutes: 5, ingredients: [fv('Lechuga', 60), fv('Tomate', 1, 'ud'), aceite(5)], steps: ['Aliña con aceite, sal y vinagre o limón.'] },
+  { id: 'g-ensalada-rucula-zanahoria', name: 'Ensalada de rúcula y zanahoria', slots: [], side: true, minutes: 5, ingredients: [fv('Rúcula', 40), fv('Zanahoria', 1, 'ud'), aceite(5)], steps: ['Ralla la zanahoria, mezcla con la rúcula y aliña.'] },
+  { id: 'g-ensalada-rucula-queso', name: 'Ensalada de rúcula y queso', slots: [], side: true, minutes: 5, ingredients: [fv('Rúcula', 50), lh('Queso rallado', 15), fv('Tomate', 1, 'ud'), aceite(5)], steps: ['Rúcula con tomate, lascas de queso y aceite.'] },
+  { id: 'g-ensalada-zanahoria-huevo', name: 'Ensalada de zanahoria y huevo', slots: [], side: true, minutes: 12, ingredients: [fv('Zanahoria', 1, 'ud'), lh('Huevos', 1, 'ud'), fv('Lechuga', 50), aceite(5)], steps: ['Cuece el huevo 10 minutos.', 'Mezcla con la zanahoria rallada y la lechuga, y aliña.'] },
+  { id: 'g-ensalada-repollo-zanahoria', name: 'Ensalada de repollo y zanahoria', slots: [], side: true, minutes: 8, ingredients: [fv('Repollo (col)', 100), fv('Zanahoria', 1, 'ud'), aceite(5)], steps: ['Corta el repollo en juliana fina, ralla la zanahoria y aliña con aceite y limón.'] },
+  { id: 'g-ensalada-choclo', name: 'Ensalada de choclo, zanahoria y tomate', slots: [], side: true, withCarbs: true, minutes: 5, ingredients: [de('Maíz dulce', 80), fv('Zanahoria', 1, 'ud'), fv('Tomate', 1, 'ud'), aceite(5)], steps: ['Mezcla el choclo con la zanahoria rallada y el tomate, y aliña.'] },
+  { id: 'g-pure-zapallo', name: 'Puré de zapallo', slots: [], side: true, minutes: 20, ingredients: [fv('Calabaza', 250), aceite(5)], steps: ['Cuece la calabaza en dados al vapor o en el microondas y písala con el aceite, sal y nuez moscada.'] },
+  { id: 'g-pure-calabaza-zanahoria', name: 'Puré de calabaza y zanahoria', slots: [], side: true, minutes: 20, ingredients: [fv('Calabaza', 200), fv('Zanahoria', 1, 'ud'), aceite(5)], steps: ['Cuece la calabaza y la zanahoria y písalas con el aceite.'] },
+  { id: 'g-revuelto-zapallitos', name: 'Revuelto de zapallitos y zanahoria', slots: [], side: true, minutes: 15, ingredients: [fv('Calabacín', 200), fv('Zanahoria', 1, 'ud'), lh('Huevos', 1, 'ud'), aceite(5)], steps: ['Saltea el zapallito y la zanahoria en tiras con el aceite.', 'Añade el huevo batido y revuelve hasta que cuaje.'] },
+  { id: 'g-verduras-horno', name: 'Verduras al horno (zapallo, morrón y cebolla)', slots: [], side: true, minutes: 30, ingredients: [fv('Calabaza', 150), fv('Pimiento rojo', 100), fv('Cebolla', 80), aceite(10)], steps: ['Corta la verdura, aliña con aceite y sal y hornea a 200 °C 30 minutos.'] },
+  { id: 'g-berenjena-zucchini-horno', name: 'Berenjena, zucchini y morrón al horno', slots: [], side: true, minutes: 25, ingredients: [fv('Berenjena', 100), fv('Calabacín', 100), fv('Pimiento rojo', 80), aceite(10)], steps: ['Hornea la verdura en rodajas con el aceite a 200 °C 20 a 25 minutos.'] },
+  { id: 'g-tortilla-espinaca', name: 'Tortilla de espinaca', slots: [], side: true, minutes: 15, ingredients: [fv('Espinacas', 150), lh('Huevos', 1, 'ud'), aceite(5)], steps: ['Saltea la espinaca, mézclala con el huevo batido y cuaja la tortilla.'] },
+  { id: 'g-papas-horno-tomate', name: 'Papas al horno y tomate con orégano', slots: [], side: true, withCarbs: true, minutes: 35, ingredients: [fv('Patata', 150), fv('Tomate', 1, 'ud'), aceite(10)], steps: ['Hornea la papa en gajos con la mitad del aceite a 200 °C 30 minutos.', 'Sirve con el tomate en rodajas, orégano y el resto del aceite.'] },
+  { id: 'g-papas-calabaza-horno', name: 'Papas y calabaza al horno', slots: [], side: true, withCarbs: true, minutes: 35, ingredients: [fv('Patata', 150), fv('Calabaza', 150), aceite(10)], steps: ['Corta la papa y la calabaza en gajos, aliña con aceite, sal y romero y hornea a 200 °C 35 minutos.'] },
+  { id: 'g-batata-horno', name: 'Batata al horno con ensalada verde', slots: [], side: true, withCarbs: true, minutes: 35, ingredients: [fv('Boniato', 150), fv('Lechuga', 50), aceite(10)], steps: ['Hornea la batata en gajos con aceite a 200 °C 30 minutos.', 'Sirve con la lechuga aliñada.'] },
+  { id: 'g-arroz-verduras', name: 'Arroz integral con verduras salteadas', slots: [], side: true, withCarbs: true, minutes: 30, ingredients: [de('Arroz integral', 50), fv('Calabacín', 100), fv('Zanahoria', 1, 'ud'), aceite(5)], steps: ['Cuece el arroz (¼ de taza en crudo por persona).', 'Saltea el zapallito y la zanahoria y mézclalos con el arroz.'] },
 ]
+
+/** Platos combinados del primer menú del plan, separados en plato y guarnición. */
+export const legacyPlanMeals: Record<string, { main: string; side: string }> = {
+  'plan-milanesa-carne-ensalada': { main: 'plan-milanesa-carne', side: 'plan-g-ensalada-lechuga-tomate' },
+  'plan-milanesa-pollo-rucula': { main: 'plan-milanesa-pollo', side: 'plan-g-ensalada-rucula-zanahoria' },
+  'plan-milanesa-pollo-pure-zapallo': { main: 'plan-milanesa-pollo', side: 'plan-g-pure-zapallo' },
+  'plan-pollo-papas-calabaza': { main: 'plan-pechuga-pollo', side: 'plan-g-papas-calabaza-horno' },
+  'plan-carne-papas-calabaza': { main: 'plan-carne-plancha', side: 'plan-g-papas-calabaza-horno' },
+  'plan-merluza-papas-tomate': { main: 'plan-merluza', side: 'plan-g-papas-horno-tomate' },
+  'plan-pollo-ensalada-choclo': { main: 'plan-pechuga-pollo', side: 'plan-g-ensalada-choclo' },
+  'plan-pollo-verduras-horno': { main: 'plan-pechuga-pollo', side: 'plan-g-verduras-horno' },
+  'plan-pollo-revuelto-zapallitos': { main: 'plan-pechuga-pollo', side: 'plan-g-revuelto-zapallitos' },
+  'plan-solomillo-cerdo-ensalada': { main: 'plan-solomillo-cerdo', side: 'plan-g-ensalada-zanahoria-huevo' },
+  'plan-merluza-verduras-horno': { main: 'plan-merluza', side: 'plan-g-berenjena-zucchini-horno' },
+  'plan-carne-pure-calabaza-zanahoria': { main: 'plan-carne-plancha', side: 'plan-g-pure-calabaza-zanahoria' },
+  'plan-omelette-atun-queso': { main: 'plan-omelette-atun-queso', side: 'plan-g-ensalada-repollo-zanahoria' },
+  'plan-budin-atun': { main: 'plan-budin-atun', side: 'plan-g-ensalada-lechuga-tomate' },
+  'plan-tarta-jamon-queso': { main: 'plan-tarta-jamon-queso', side: 'plan-g-ensalada-lechuga-tomate' },
+  'plan-tarta-zapallito': { main: 'plan-tarta-zapallito', side: 'plan-g-ensalada-lechuga-tomate' },
+  'plan-pascualina': { main: 'plan-pascualina', side: 'plan-g-ensalada-lechuga-tomate' },
+  'plan-tarta-atun': { main: 'plan-tarta-atun', side: 'plan-g-ensalada-lechuga-tomate' },
+}
 
 export const planRecipes: Recipe[] = list.map(planRecipe)

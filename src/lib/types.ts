@@ -90,6 +90,8 @@ export interface Meal {
   day: DayString
   slot: MealSlot
   recipeId?: string
+  /** Guarnición del plato (otra receta), con las mismas raciones. */
+  sideId?: string
   /** Comida libre, sin receta. */
   customName?: string
   customKcal?: number
