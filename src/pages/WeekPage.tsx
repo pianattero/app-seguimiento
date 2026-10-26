@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useState, type CSSProperties } from 'react'
 import { Icon } from '../components/Icon'
-import { Card, Page, Row, SessionRow } from '../components/ui'
+import { Card, Page, SessionRow, StatTile } from '../components/ui'
 import { addDays, dayTitle, monthGrid, parseDay, startOfWeek, today, weekTitle } from '../lib/dates'
 import { db } from '../lib/db'
 import { formatKm } from '../lib/format'
@@ -107,12 +107,19 @@ export function WeekPage({ month, selected: initial }: { month: string; selected
         </Card>
       )}
 
-      <Card title={`Semana ${weekTitle(weekStart)}`}>
-        <Row label="Entrenos fijos hechos" value={`${fixed.filter((s) => s.status === 'done').length} de ${fixed.length}`} />
-        {done.some((s) => s.isExtra) && <Row label="Extras" value={done.filter((s) => s.isExtra).length} />}
-        <Row label="Kilómetros" value={formatKm(done.reduce((t, s) => t + (s.distanceKm ?? 0), 0))} />
-        <Row label="Series de fuerza" value={week.reduce((t, s) => t + setCount(s.id), 0)} />
-      </Card>
+      <section className="card-block">
+        <div className="card-title"><h2>{`Semana ${weekTitle(weekStart)}`}</h2></div>
+        <div className="stat-grid">
+          <StatTile
+            label="Entrenos fijos"
+            value={`${fixed.filter((s) => s.status === 'done').length} de ${fixed.length}`}
+            hint={done.some((s) => s.isExtra) ? `+${done.filter((s) => s.isExtra).length} extra` : 'hechos'}
+            tone="var(--green)"
+          />
+          <StatTile label="Kilómetros" value={formatKm(done.reduce((t, s) => t + (s.distanceKm ?? 0), 0))} tone="var(--pink)" />
+          <StatTile label="Series" value={week.reduce((t, s) => t + setCount(s.id), 0)} hint="de fuerza" tone="var(--yellow)" />
+        </div>
+      </section>
     </Page>
   )
 }
