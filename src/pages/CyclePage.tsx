@@ -1,7 +1,7 @@
 import { Icon } from '../components/Icon'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
-import { Card, Page, Row } from '../components/ui'
+import { Card, Page, Row, StatTile } from '../components/ui'
 import { cycleFor, phaseInfo, type CyclePhase } from '../lib/cycle'
 import { dayTitle, daysBetween, monthGrid, parseDay, today } from '../lib/dates'
 import { db } from '../lib/db'
@@ -20,11 +20,13 @@ export function CyclePage({ month }: { month?: string }) {
 
       {info ? (
         <>
-          <Card title="Hoy">
-            <Row label="Fase" value={phaseInfo[info.phase].label} />
-            <Row label="Día del ciclo" value={`${info.dayOfCycle} de ${info.cycleLength}`} />
-            <Row label="Próxima regla (aprox.)" value={dayTitle(info.nextPeriod)} />
-          </Card>
+          <section className="card-block">
+            <div className="card-title"><h2>Hoy</h2></div>
+            <div className="stat-grid">
+              <StatTile label="Fase" value={phaseInfo[info.phase].label} hint={`Día ${info.dayOfCycle} de ${info.cycleLength}`} tone={phaseTone[info.phase]} />
+              <StatTile label="Próxima regla" value={nextPeriodFormat.format(parseDay(info.nextPeriod))} hint={`en ${daysBetween(today(), info.nextPeriod)} días (aprox.)`} />
+            </div>
+          </section>
           <Card title={`Fase ${phaseInfo[info.phase].label.toLowerCase()}`}>
             <div className="row prose"><b>Comida.</b> {phaseInfo[info.phase].food}</div>
             <div className="row prose"><b>Entreno.</b> {phaseInfo[info.phase].training}</div>
@@ -58,6 +60,9 @@ export function CyclePage({ month }: { month?: string }) {
     </Page>
   )
 }
+
+const phaseTone: Record<CyclePhase, string> = { menstrual: 'var(--pink)', folicular: 'var(--green)', ovulatoria: 'var(--yellow)', lutea: 'var(--blue)' }
+const nextPeriodFormat = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short' })
 
 const phaseClass: Record<CyclePhase, string> = { menstrual: 'ph-menstrual', folicular: 'ph-folicular', ovulatoria: 'ph-ovulatoria', lutea: 'ph-lutea' }
 
