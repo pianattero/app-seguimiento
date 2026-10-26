@@ -2,6 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { Card, Page, Row } from '../components/ui'
 import { db } from '../lib/db'
 import { formatNumber } from '../lib/format'
+import { deleteCustomRecipe } from '../lib/meals'
 import { getRecipe } from '../lib/recipes'
 import { useState } from 'react'
 
@@ -77,7 +78,7 @@ export function RecipePage({ id, sideId, portions }: { id: string; sideId?: stri
           className="danger wide"
           onClick={async () => {
             if (!confirmDelete) return setConfirmDelete(true)
-            await db.customRecipes.delete(id)
+            await deleteCustomRecipe(id)
             history.back()
           }}
         >

@@ -134,6 +134,30 @@ export async function fillWeek(
   })
 }
 
+/**
+ * Borra una receta propia. Las comidas que la usaban pasan a ser comidas libres con su nombre y sus kcal,
+ * para no dejar huecos sin nombre en el menú ni perder las calorías de esos días.
+ */
+export async function deleteCustomRecipe(id: string, db: AppDB = defaultDb): Promise<void> {
+  await db.transaction('rw', db.customRecipes, db.meals, async () => {
+    const recipe = await db.customRecipes.get(id)
+    if (!recipe) return
+    const using = await db.meals.filter((m) => m.recipeId === id).toArray()
+    for (const meal of using) {
+      await db.meals.update(meal.id!, {
+        recipeId: undefined,
+        customName: recipe.name,
+        customKcal: Math.round(recipe.kcal * meal.portions),
+        customProteinG: Math.round(recipe.proteinG * meal.portions),
+        customCarbsG: Math.round(recipe.carbsG * meal.portions),
+        customFatG: Math.round(recipe.fatG * meal.portions),
+        portions: 1,
+      })
+    }
+    await db.customRecipes.delete(id)
+  })
+}
+
 export interface ShoppingItem {
   key: string
   name: string

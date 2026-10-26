@@ -1,13 +1,13 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
 import { Icon } from '../components/Icon'
-import { Card, Page, Row } from '../components/ui'
+import { Card, Page, StatTile } from '../components/ui'
 import { dayTitle, parseDay, today } from '../lib/dates'
 import { db } from '../lib/db'
 import { formatKg, formatNumber } from '../lib/format'
 import { parseQuantity } from '../lib/importer'
 import type { WeightEntry } from '../lib/types'
-import { saveWeight, weighInDay, weightStats } from '../lib/weight'
+import { deleteWeight, saveWeight, weighInDay, weightStats } from '../lib/weight'
 
 const shortDate = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short' })
 const signedKg = (kg: number) => `${kg > 0 ? '+' : kg < 0 ? '−' : ''}${formatNumber(Math.abs(kg), 1)} kg`
@@ -26,7 +26,7 @@ export function WeightPage() {
           onSubmit={async (e) => {
             e.preventDefault()
             const kg = parseQuantity(text)?.value
-            if (!kg || kg < 30 || kg > 300) return
+            if (!day || day > today() || !kg || kg < 30 || kg > 300) return
             await saveWeight(day, kg)
             setText('')
           }}
@@ -55,11 +55,14 @@ export function WeightPage() {
       </Card>
 
       {stats && (
-        <Card title="Progreso">
-          <Row label="Peso actual" value={formatKg(stats.last.kg)} />
-          <Row label={`Desde el ${shortDate.format(parseDay(stats.first.day))}`} value={signedKg(stats.change)} />
-          {stats.weeklyRate !== undefined && <Row label="Ritmo (últimas 4 semanas)" value={`${signedKg(stats.weeklyRate)} / semana`} />}
-        </Card>
+        <section className="card-block">
+          <div className="card-title"><h2>Progreso</h2></div>
+          <div className="stat-grid">
+            <StatTile label="Peso actual" value={formatKg(stats.last.kg)} tone="var(--yellow)" />
+            <StatTile label={`Desde el ${shortDate.format(parseDay(stats.first.day))}`} value={signedKg(stats.change)} tone={stats.change <= 0 ? 'var(--green)' : undefined} />
+            {stats.weeklyRate !== undefined && <StatTile label="Ritmo" value={signedKg(stats.weeklyRate)} hint="por semana (últimas 4)" />}
+          </div>
+        </section>
       )}
 
       {entries.length >= 2 ? (
@@ -83,7 +86,7 @@ export function WeightPage() {
                   {previous && <small className="muted">{signedKg(e.kg - previous.kg)} respecto al anterior</small>}
                 </span>
                 <span className="row-value">{formatKg(e.kg)}</span>
-                <button className="icon-button danger" aria-label={`Borrar pesaje del ${e.day}`} onClick={() => db.weights.delete(e.day)}>
+                <button className="icon-button danger" aria-label={`Borrar pesaje del ${e.day}`} onClick={() => deleteWeight(e.day)}>
                   <Icon name="close" />
                 </button>
               </div>
@@ -130,6 +133,7 @@ function WeightChart({ entries }: { entries: WeightEntry[] }) {
         ))}
         <text className="axis" x={pad.left} y={H - 6} textAnchor="start">{shortDate.format(parseDay(entries[0].day))}</text>
         <text className="axis" x={W - pad.right} y={H - 6} textAnchor="end">{shortDate.format(parseDay(entries[entries.length - 1].day))}</text>
+        <polygon className="area" points={`${points[0].px},${H - pad.bottom} ${points.map((p) => `${p.px},${p.py}`).join(' ')} ${points[points.length - 1].px},${H - pad.bottom}`} />
         <polyline className="line" points={points.map((p) => `${p.px},${p.py}`).join(' ')} />
         {active !== undefined && <line className="crosshair" x1={shown.px} x2={shown.px} y1={pad.top} y2={H - pad.bottom} />}
         {points.map((p, i) => (

@@ -1,8 +1,8 @@
 import { Icon } from '../components/Icon'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Card, Page, Row, SessionRow } from '../components/ui'
+import { Card, MacroBar, Page, Ring, SessionRow } from '../components/ui'
 import { phaseInfo } from '../lib/cycle'
-import { dayTitle, startOfWeek, today, weekdayIndex } from '../lib/dates'
+import { parseDay, startOfWeek, today, weekdayIndex, weekdayNames } from '../lib/dates'
 import { planForDay } from '../lib/dayPlan'
 import { db } from '../lib/db'
 import { formatNumber } from '../lib/format'
@@ -10,6 +10,8 @@ import { totals } from '../lib/meals'
 import { mealSlots } from '../lib/recipes'
 import { needsWeighIn } from '../lib/weight'
 import { MealRow } from './MealsPage'
+
+const dayMonth = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long' })
 
 export function TodayPage() {
   const day = today()
@@ -28,13 +30,14 @@ export function TodayPage() {
   const planned = totals(meals)
 
   return (
-    <Page title={dayTitle(day)}>
+    <Page eyebrow={weekdayNames[weekdayIndex(day)]} title={dayMonth.format(parseDay(day))}>
       {profile && !profile.configured && (
         <Card>
-          <a className="row row-link" href="#/ajustes">
+          <a className="row row-link highlight-pink" href="#/ajustes">
+            <Icon name="sliders" className="row-icon" />
             <span className="row-main">
               <strong>Completa tus datos</strong>
-              <small className="muted">Peso, altura y edad, para calcular bien tus calorías ›</small>
+              <small>Peso, altura y edad, para calcular bien tus calorías ›</small>
             </span>
           </a>
         </Card>
@@ -52,6 +55,25 @@ export function TodayPage() {
         </Card>
       )}
 
+      {plan && profile && (
+        <Card
+          title="Objetivo de hoy"
+          footer={`Según tu metabolismo basal, el entreno de hoy y un déficit de ${plan.deficit} kcal${plan.deficit !== profile.deficitKcal ? ' (más suave por la fase del ciclo)' : ''}.`}
+        >
+          <div className="today-hero">
+            <Ring value={meals.length ? planned.kcal : 0} max={plan.target.kcal}>
+              <strong>{meals.length ? formatNumber(planned.kcal) : plan.target.kcal}</strong>
+              <small>{meals.length ? `de ${plan.target.kcal} kcal` : 'kcal objetivo'}</small>
+            </Ring>
+            <div className="macros">
+              <MacroBar label="Proteína" value={meals.length ? planned.proteinG : undefined} max={plan.target.proteinG} color="var(--pink)" />
+              <MacroBar label="Hidratos" value={meals.length ? planned.carbsG : undefined} max={plan.target.carbsG} color="var(--yellow)" />
+              <MacroBar label="Grasa" value={meals.length ? planned.fatG : undefined} max={plan.target.fatG} color="var(--blue)" />
+            </div>
+          </div>
+        </Card>
+      )}
+
       <Card title="Entreno de hoy">
         {sessions?.length === 0 && <div className="row muted"><Icon name="rest" className="row-icon" /> Descanso</div>}
         {sessions?.map((s) => <SessionRow key={s.id} session={s} setCount={setCounts?.[s.id!]} />)}
@@ -59,7 +81,7 @@ export function TodayPage() {
 
       <Card
         title="Comidas de hoy"
-        aside={plan && meals.length > 0 ? `${formatNumber(planned.kcal)} / ${plan.target.kcal} kcal` : undefined}
+        aside={meals.length > 0 ? `${formatNumber(planned.kcal)} kcal` : undefined}
       >
         {meals.length === 0 && (
           <a className="row row-link" href={`#/comidas?w=${startOfWeek(day)}`}>Aún no hay menú para hoy. Ir a Comidas ›</a>
@@ -69,21 +91,10 @@ export function TodayPage() {
         ))}
       </Card>
 
-      {plan && profile && (
-        <Card
-          title="Objetivo de hoy"
-          footer={`Según tu metabolismo basal, el entreno de hoy y un déficit de ${plan.deficit} kcal${plan.deficit !== profile.deficitKcal ? ' (más suave por la fase del ciclo)' : ''}.`}
-        >
-          <Row label="Calorías" value={`${plan.target.kcal} kcal`} />
-          <Row label="Proteína" value={meals.length ? `${formatNumber(planned.proteinG)} / ${plan.target.proteinG} g` : `${plan.target.proteinG} g`} />
-          <Row label="Hidratos" value={meals.length ? `${formatNumber(planned.carbsG)} / ${plan.target.carbsG} g` : `${plan.target.carbsG} g`} />
-          <Row label="Grasa" value={meals.length ? `${formatNumber(planned.fatG)} / ${plan.target.fatG} g` : `${plan.target.fatG} g`} />
-        </Card>
-      )}
-
       <Card title="Ciclo">
         {plan?.cycle ? (
           <a className="row row-link" href="#/ciclo">
+            <span className={`phase-dot ph-${plan.cycle.phase}`} aria-hidden />
             <span className="row-main">
               <strong>Fase {phaseInfo[plan.cycle.phase].label.toLowerCase()} · día {plan.cycle.dayOfCycle}</strong>
               <small className="muted">{phaseInfo[plan.cycle.phase].training}</small>
