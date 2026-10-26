@@ -34,6 +34,13 @@ export function RecipePage({ id, sideId, portions }: { id: string; sideId?: stri
           <StatTile label="Grasa" value={`${recipe.fatG + (side?.fatG ?? 0)} g`} tone="var(--blue)" />
         </div>
       </section>
+      <Card title={side ? 'Por ración, con la guarnición' : 'Por ración'} aside={`${recipe.minutes} min`}>
+        <Row label="Calorías" value={`${recipe.kcal + (side?.kcal ?? 0)} kcal`} />
+        <Row label="Proteína" value={`${recipe.proteinG + (side?.proteinG ?? 0)} g`} />
+        <Row label="Hidratos" value={`${recipe.carbsG + (side?.carbsG ?? 0)} g`} />
+        <Row label="Grasa" value={`${recipe.fatG + (side?.fatG ?? 0)} g`} />
+        {side && <Row label={`Solo ${recipe.name.toLowerCase()}`} value={`${recipe.kcal} kcal`} />}
+      </Card>
 
       <Card
         title="Ingredientes para los dos"
