@@ -2,7 +2,7 @@ import { Icon } from '../components/Icon'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useMemo, useState } from 'react'
 import { IngredientBreakdown } from '../components/IngredientBreakdown'
-import { Card, NumberInput, Page, Row } from '../components/ui'
+import { Card, NumberInput, Page } from '../components/ui'
 import { dayTitle, startOfWeek } from '../lib/dates'
 import { planForDay } from '../lib/dayPlan'
 import { db } from '../lib/db'
@@ -113,9 +113,19 @@ export function MealEditPage({ day, slot }: { day: string; slot: MealSlot }) {
   const option = (r: Recipe) => (
     <button key={r.id} className={`row row-button recipe-option${r.id === recipe?.id ? ' selected' : ''}`} onClick={() => choose(r)}>
       <span className="row-main">
+        <span className="recipe-name">{r.name}</span>
+        <small className="muted">
+          {r.proteinG} g proteína · <Icon name="clock" className="inline-icon" /> {r.minutes} min{r.needsSide ? ' · + guarnición' : ''}
+        </small>
+        <span className="tags">
+          {r.fromPlan && <span className="tag tag-plan">Plan</span>}
+          {r.thermomix && slot !== 'desayuno' && slot !== 'merienda' && <span className="tag">Thermomix</span>}
+          {r.id.startsWith('propia-') && <span className="tag">Propia</span>}
+        </span>
         <span>{r.name}{r.thermomix && slot !== 'desayuno' && slot !== 'merienda' ? ' · Thermomix' : ''}{r.id.startsWith('propia-') ? ' · propia' : ''}{r.fromPlan ? ' · plan' : ''}</span>
         <small className="muted">{r.kcal} kcal · {r.proteinG} g proteína · {r.minutes} min{r.needsSide ? ' · + guarnición' : ''}</small>
       </span>
+      <span className="recipe-kcal">{r.kcal}<small>kcal</small></span>
     </button>
   )
 
@@ -127,6 +137,20 @@ export function MealEditPage({ day, slot }: { day: string; slot: MealSlot }) {
       </p>
 
       {meal && (
+        <section className="card-block">
+          <div className={`meal-hero slot-${slot}`}>
+            <span className="meal-card-head">
+              <span className="meal-card-slot">Ahora</span>
+              <span className="meal-card-kcal">{formatNumber(mealNutrition(meal).kcal)} kcal</span>
+            </span>
+            <strong className="meal-hero-name">{recipe?.name ?? meal.customName}</strong>
+            {side && recipe && <span className="meal-card-side">con {side.name.toLowerCase()}</span>}
+            {recipe && (
+              <div className="meal-hero-actions">
+                <span className="stepper" aria-label="Tus raciones">
+                  <button aria-label="Menos" onClick={() => setPortions(meal.portions - 0.25)}><Icon name="minus" /></button>
+                  <span><strong>{formatNumber(meal.portions, 2)}</strong> {meal.portions === 1 ? 'ración' : 'raciones'}</span>
+                  <button aria-label="Más" onClick={() => setPortions(meal.portions + 0.25)}><Icon name="plus" /></button>
         <Card title="Ahora">
           <Row label={side && recipe ? `${recipe.name} + ${side.name.toLowerCase()}` : recipe?.name ?? meal.customName} value={`${formatNumber(mealNutrition(meal).kcal)} kcal`} />
           {recipe && (
@@ -138,13 +162,39 @@ export function MealEditPage({ day, slot }: { day: string; slot: MealSlot }) {
                   <strong>{formatNumber(meal.portions, 2)}</strong>
                   <button className="icon-button" aria-label="Más" onClick={() => setPortions(meal.portions + 0.25)}><Icon name="plus" /></button>
                 </span>
+                <a className="pill-link" href={`#/receta/${recipe.id}?r=${meal.portions}${side ? `&g=${side.id}` : ''}`}>Ver receta ›</a>
               </div>
+            )}
+          </div>
+          <button className="text-button danger remove-meal" onClick={async () => { await db.meals.delete(meal.id!); navigate(back) }}>
               <a className="row row-link" href={`#/receta/${recipe.id}?r=${meal.portions}${side ? `&g=${side.id}` : ''}`}>Ver receta e ingredientes ›</a>
             </>
           )}
           <button className="row row-button danger" onClick={async () => { await db.meals.delete(meal.id!); navigate(back) }}>
             Quitar esta comida
           </button>
+        </section>
+      )}
+
+      {meal && recipe && (recipe.needsSide || side) && (
+        <Card title="Guarnición" footer={recipe.withCarbs ? 'Este plato ya lleva hidratos: según tu plan, mejor una guarnición de verdura.' : slot === 'almuerzo' ? 'En el almuerzo tu plan suma ¼ de hidratos: papa, batata, arroz o choclo.' : undefined}>
+          <button className="row row-button side-toggle" onClick={() => setShowSides(!showSides)} aria-expanded={showSides}>
+            <span className="row-main">{side ? side.name : 'Sin guarnición'}</span>
+            <span className="row-value">{side ? `${formatNumber(side.kcal * meal.portions)} kcal · ` : ''}{showSides ? 'Cerrar' : 'Cambiar'}</span>
+          </button>
+          {showSides && (
+            <>
+              {sides.map((s) => (
+                <button key={s.id} className={`row row-button recipe-option${s.id === side?.id ? ' selected' : ''}`} onClick={() => setSide(s)}>
+                  <span className="row-main">
+                    <span>{s.name}</span>
+                    <small className="muted">{s.kcal} kcal{sideFits(s) ? ' · encaja con tu plan' : ''}</small>
+                  </span>
+                </button>
+              ))}
+              <button className="row row-button" onClick={() => setSide(undefined)}>Sin guarnición</button>
+            </>
+          )}
         </Card>
       )}
 
@@ -171,6 +221,7 @@ export function MealEditPage({ day, slot }: { day: string; slot: MealSlot }) {
       )}
 
       <div className="search-box">
+        <Icon name="search" />
         <input
           type="search"
           value={query}

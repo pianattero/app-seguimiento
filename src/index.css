@@ -349,3 +349,85 @@ button:active:not(:disabled), .button-link:active, .icon-button:active, .meal-ce
 @media (prefers-color-scheme: dark) {
   .tab-bar { background: #2a2622; box-shadow: 0 0 0 1px var(--line), 0 8px 24px rgba(0, 0, 0, 0.4); }
 }
+
+/* Comidas: vista por día o por semana */
+.view-switch { margin: 4px 0 12px; }
+.view-switch button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; }
+.view-switch .icon { width: 18px; height: 18px; }
+.day-bar { display: block; width: 70%; height: 4px; margin-top: 4px; border-radius: 999px; background: var(--input); overflow: hidden; }
+.day-bar span { display: block; height: 100%; border-radius: 999px; background: var(--accent); }
+.day-bar span.over { background: var(--bad); }
+.meal-grid-day.is-today .day-bar { background: rgba(255, 250, 241, 0.25); }
+.meal-grid-day.is-today .day-bar span { background: var(--pink); }
+
+.day-strip { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.day-pill { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 0 7px; min-width: 0; border-radius: 18px; background: var(--card); border: 1px solid var(--line); color: var(--text); }
+.day-pill .weekday { font-size: 11px; color: var(--muted); }
+.day-pill .daynum { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.day-pill.is-today .daynum { color: var(--accent); }
+.day-pill.selected { background: var(--dark); color: var(--on-dark); border-color: var(--dark); }
+.day-pill.selected .weekday, .day-pill.selected.is-today .daynum { color: var(--on-dark); }
+.day-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+.day-dot.empty { background: transparent; box-shadow: inset 0 0 0 1.5px var(--muted); }
+.day-dot.over { background: var(--bad); }
+.day-macros { display: grid; gap: 10px; padding: 14px 16px; margin-bottom: 10px; }
+
+.meal-cards { display: grid; gap: 10px; }
+.meal-card, .meal-hero { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px 16px; border-radius: 22px; background: var(--slot); color: var(--ink); }
+.meal-card:active { transform: scale(0.98); }
+.meal-card.empty { background: transparent; border: 1.5px dashed var(--slot); color: var(--text); }
+.meal-card-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 2px; }
+.meal-card-slot { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.meal-card-kcal { font-size: 13px; font-weight: 600; padding: 2px 10px; border-radius: 999px; background: rgba(255, 250, 241, 0.6); font-variant-numeric: tabular-nums; }
+.meal-card-name { font-family: Fraunces, Georgia, serif; font-size: 20px; font-weight: 600; line-height: 1.2; }
+.meal-card-side { font-size: 14px; color: rgba(29, 27, 24, 0.72); }
+.meal-card-add { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.meal-card-add .icon { width: 18px; height: 18px; }
+
+/* Comidas: editar una comida */
+.meal-hero { padding: 18px; }
+.meal-hero-name { font-family: Fraunces, Georgia, serif; font-size: 24px; font-weight: 600; line-height: 1.15; }
+.meal-hero-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.stepper { display: inline-flex; align-items: center; gap: 4px; padding: 3px; border-radius: 999px; background: rgba(255, 250, 241, 0.7); font-size: 14px; }
+.stepper > span { padding: 0 6px; white-space: nowrap; }
+.stepper button { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; padding: 0; border: none; background: var(--ink); color: #fffaf1; }
+.stepper .icon { width: 18px; height: 18px; }
+.pill-link { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px; background: var(--ink); color: #fffaf1; font-weight: 600; font-size: 15px; }
+.remove-meal { display: block; margin: 8px auto 0; font-size: 14px; color: var(--bad) !important; }
+.search-box { color: var(--muted); }
+.search-box input { color: var(--text); }
+
+.recipe-option { gap: 12px; }
+.recipe-option .recipe-name { color: var(--text); font-weight: 500; }
+.recipe-option small .inline-icon { width: 13px; height: 13px; margin: -2px 0 0; }
+.tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.tags:empty { display: none; }
+.tag { font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: var(--input); color: var(--text); }
+.tag-plan { background: var(--green); color: var(--ink); }
+.recipe-kcal { display: flex; flex-direction: column; align-items: flex-end; flex: none; font-family: Fraunces, Georgia, serif; font-size: 20px; font-weight: 600; color: var(--text); line-height: 1; font-variant-numeric: tabular-nums; }
+.recipe-kcal small { font-family: Inter, system-ui, sans-serif; font-size: 11px; font-weight: 400; color: var(--muted); margin-top: 2px; }
+.recipe-option.selected { background: var(--accent-soft); }
+
+/* Recetas: tarjetas de macros y pasos numerados */
+.macro-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.card-title .inline-icon { width: 14px; height: 14px; }
+.steps { list-style: none; counter-reset: paso; padding: 14px 16px; }
+.steps li { counter-increment: paso; position: relative; padding-left: 38px; margin-bottom: 14px; }
+.steps li:last-child { margin-bottom: 0; }
+.steps li::before { content: counter(paso); position: absolute; left: 0; top: -1px; width: 26px; height: 26px; border-radius: 50%; background: var(--pink); color: var(--ink); font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+
+/* Lista de la compra: casillas redondas y progreso */
+.shop-progress { display: grid; gap: 6px; margin: 14px 4px 0; font-size: 14px; color: var(--muted); }
+.shop-progress strong { color: var(--text); }
+.shop-progress .macro-track { display: block; }
+.shop-progress .macro-fill { display: block; }
+.check-row input[type='checkbox'] {
+  appearance: none; -webkit-appearance: none; margin: 0; width: 24px; height: 24px; border-radius: 50%;
+  border: 1.5px solid var(--muted); background: transparent; display: grid; place-content: center; cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.check-row input[type='checkbox']:checked {
+  background: var(--green) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231d1b18' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4L18 8'/%3E%3C/svg%3E") center / 16px no-repeat;
+  border-color: var(--green);
+}
+.side-toggle .row-main { color: var(--text); font-weight: 500; }

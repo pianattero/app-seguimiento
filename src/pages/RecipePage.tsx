@@ -1,5 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Card, Page, Row } from '../components/ui'
+import { Icon } from '../components/Icon'
+import { Card, Page, Row, StatTile } from '../components/ui'
 import { db } from '../lib/db'
 import { formatNumber } from '../lib/format'
 import { deleteCustomRecipe } from '../lib/meals'
@@ -21,6 +22,18 @@ export function RecipePage({ id, sideId, portions }: { id: string; sideId?: stri
 
   return (
     <Page title={recipe.name} actions={<button className="text-button" onClick={() => history.back()}>Volver</button>}>
+      <section className="card-block">
+        <div className="card-title">
+          <h2>{side ? 'Por ración, con la guarnición' : 'Por ración'}</h2>
+          <span className="muted"><Icon name="clock" className="inline-icon" /> {recipe.minutes} min</span>
+        </div>
+        <div className="stat-grid macro-grid">
+          <StatTile label="Calorías" value={recipe.kcal + (side?.kcal ?? 0)} hint={side ? `${recipe.kcal} sin guarnición` : 'kcal'} tone="var(--peach)" />
+          <StatTile label="Proteína" value={`${recipe.proteinG + (side?.proteinG ?? 0)} g`} tone="var(--pink)" />
+          <StatTile label="Hidratos" value={`${recipe.carbsG + (side?.carbsG ?? 0)} g`} tone="var(--yellow)" />
+          <StatTile label="Grasa" value={`${recipe.fatG + (side?.fatG ?? 0)} g`} tone="var(--blue)" />
+        </div>
+      </section>
       <Card title={side ? 'Por ración, con la guarnición' : 'Por ración'} aside={`${recipe.minutes} min`}>
         <Row label="Calorías" value={`${recipe.kcal + (side?.kcal ?? 0)} kcal`} />
         <Row label="Proteína" value={`${recipe.proteinG + (side?.proteinG ?? 0)} g`} />
