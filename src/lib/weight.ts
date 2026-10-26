@@ -49,3 +49,14 @@ export async function saveWeight(day: DayString, kg: number, db: AppDB = default
     if (profile && latest?.day === day) await db.profile.update('main', { person: { ...profile.person, weightKg: kg } })
   })
 }
+
+/** Borra un pesaje; si era el más reciente, el perfil vuelve al peso del pesaje anterior. */
+export async function deleteWeight(day: DayString, db: AppDB = defaultDb): Promise<void> {
+  await db.transaction('rw', db.weights, db.profile, async () => {
+    const latestBefore = await db.weights.orderBy('day').last()
+    await db.weights.delete(day)
+    const latest = await db.weights.orderBy('day').last()
+    const profile = await db.profile.get('main')
+    if (profile && latest && latestBefore?.day === day) await db.profile.update('main', { person: { ...profile.person, weightKg: latest.kg } })
+  })
+}

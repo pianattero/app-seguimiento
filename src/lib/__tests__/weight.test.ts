@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { AppDB, seedIfNeeded } from '../db'
-import { needsWeighIn, saveWeight, weighInDay, weightStats } from '../weight'
+import { deleteWeight, needsWeighIn, saveWeight, weighInDay, weightStats } from '../weight'
 
 describe('peso', () => {
   it('el día de pesarse es el domingo de la semana o el anterior', () => {
@@ -34,5 +34,21 @@ describe('peso', () => {
     await saveWeight('2026-10-18', 88.1, db)
     expect((await db.profile.get('main'))?.person.weightKg).toBe(87.6)
     expect(await db.weights.count()).toBe(2)
+  })
+
+  it('al borrar el último pesaje, el perfil vuelve al anterior', async () => {
+    const db = new AppDB('peso-borrar-test')
+    await seedIfNeeded(db)
+    await saveWeight('2026-10-18', 88.1, db)
+    await saveWeight('2026-10-25', 87.6, db)
+    await deleteWeight('2026-10-18', db)
+    expect((await db.profile.get('main'))?.person.weightKg).toBe(87.6)
+    await deleteWeight('2026-10-25', db)
+    expect(await db.weights.count()).toBe(0)
+    expect((await db.profile.get('main'))?.person.weightKg).toBe(87.6)
+    await saveWeight('2026-10-18', 88.1, db)
+    await saveWeight('2026-10-25', 87.6, db)
+    await deleteWeight('2026-10-25', db)
+    expect((await db.profile.get('main'))?.person.weightKg).toBe(88.1)
   })
 })

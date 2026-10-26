@@ -16,7 +16,7 @@ export function SettingsPage() {
       <Card title="Apple Watch">
         <a className="row row-link" href="#/atajo">Cómo enviar los entrenos con un Atajo ›</a>
       </Card>
-      <BackupCard />
+      <BackupCard lastBackupAt={profile?.lastBackupAt} />
     </Page>
   )
 }
@@ -139,9 +139,10 @@ function ProfileForm({ profile }: { profile: Profile }) {
   )
 }
 
-function BackupCard() {
+function BackupCard({ lastBackupAt }: { lastBackupAt?: string }) {
   const fileInput = useRef<HTMLInputElement>(null)
   const [message, setMessage] = useState<string>()
+  const daysSince = lastBackupAt ? Math.floor((Date.now() - Date.parse(lastBackupAt)) / 86_400_000) : undefined
 
   async function download() {
     const backup = await exportBackup()
@@ -151,23 +152,49 @@ function BackupCard() {
     a.href = url
     a.download = `seguimiento-${backup.exportedAt.slice(0, 10)}.json`
     a.click()
-    URL.revokeObjectURL(url)
+    // Safari necesita el enlace un momento después del clic para empezar la descarga.
+    setTimeout(() => URL.revokeObjectURL(url), 10_000)
+    await db.profile.update('main', { lastBackupAt: backup.exportedAt })
   }
 
   async function restore(file: File) {
     try {
-      await importBackup(JSON.parse(await file.text()) as Backup)
+      let backup: Backup
+      try {
+        backup = JSON.parse(await file.text()) as Backup
+      } catch {
+        throw new Error('El archivo no es una copia de la app')
+      }
+      await importBackup(backup)
       setMessage('Copia restaurada.')
     } catch (error) {
-      setMessage(`No se pudo restaurar: ${(error as Error).message}`)
+      setMessage(`No se pudo restaurar: ${(error as Error).message}. Tus datos no se han tocado.`)
     }
   }
 
   return (
-    <Card title="Copia de seguridad" footer={message ?? 'Los datos solo están en este navegador. Descarga una copia de vez en cuando y guárdala en iCloud Drive.'}>
+    <Card
+      title="Copia de seguridad"
+      footer={message ?? 'Los datos solo están en este navegador, y Safari puede borrarlos si pasas varios días sin abrir la app. Descarga una copia cada semana y guárdala en iCloud Drive.'}
+    >
+      <Row
+        label="Última copia"
+        value={daysSince === undefined ? 'nunca' : daysSince === 0 ? 'hoy' : daysSince === 1 ? 'ayer' : `hace ${daysSince} días`}
+      />
       <button className="row row-button" onClick={download}>Descargar copia</button>
       <button className="row row-button" onClick={() => fileInput.current?.click()}>Restaurar desde archivo…</button>
-      <input ref={fileInput} type="file" accept="application/json,.json" hidden onChange={(e) => e.target.files?.[0] && restore(e.target.files[0])} />
+      <input
+        ref={fileInput}
+        type="file"
+        accept="application/json,.json"
+        hidden
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          // Se vacía para poder elegir el mismo archivo otra vez.
+          e.target.value = ''
+          if (file) restore(file)
+        }}
+      />
     </Card>
   )
 }

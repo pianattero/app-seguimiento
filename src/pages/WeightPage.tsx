@@ -7,7 +7,7 @@ import { db } from '../lib/db'
 import { formatKg, formatNumber } from '../lib/format'
 import { parseQuantity } from '../lib/importer'
 import type { WeightEntry } from '../lib/types'
-import { saveWeight, weighInDay, weightStats } from '../lib/weight'
+import { deleteWeight, saveWeight, weighInDay, weightStats } from '../lib/weight'
 
 const shortDate = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short' })
 const signedKg = (kg: number) => `${kg > 0 ? '+' : kg < 0 ? '−' : ''}${formatNumber(Math.abs(kg), 1)} kg`
@@ -26,7 +26,7 @@ export function WeightPage() {
           onSubmit={async (e) => {
             e.preventDefault()
             const kg = parseQuantity(text)?.value
-            if (!kg || kg < 30 || kg > 300) return
+            if (!day || day > today() || !kg || kg < 30 || kg > 300) return
             await saveWeight(day, kg)
             setText('')
           }}
@@ -83,7 +83,7 @@ export function WeightPage() {
                   {previous && <small className="muted">{signedKg(e.kg - previous.kg)} respecto al anterior</small>}
                 </span>
                 <span className="row-value">{formatKg(e.kg)}</span>
-                <button className="icon-button danger" aria-label={`Borrar pesaje del ${e.day}`} onClick={() => db.weights.delete(e.day)}>
+                <button className="icon-button danger" aria-label={`Borrar pesaje del ${e.day}`} onClick={() => deleteWeight(e.day)}>
                   <Icon name="close" />
                 </button>
               </div>

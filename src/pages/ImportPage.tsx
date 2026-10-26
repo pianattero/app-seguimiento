@@ -41,8 +41,13 @@ export function ImportPage({ params }: { params: URLSearchParams }) {
           disabled={saving}
           onClick={async () => {
             setSaving(true)
-            const id = await mergeWorkout(w)
-            navigate(`/sesion/${id}`)
+            try {
+              const id = await mergeWorkout(w)
+              navigate(`/sesion/${id}`)
+            } finally {
+              // Si falla, el aviso de arriba lo explica y se puede volver a intentar.
+              setSaving(false)
+            }
           }}
         >
           Guardar

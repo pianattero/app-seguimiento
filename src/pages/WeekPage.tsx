@@ -41,7 +41,8 @@ export function WeekPage({ month, selected: initial }: { month: string; selected
   }, [first, last])
 
   const sessions = useLiveQuery(() => db.sessions.where('day').between(first, addDays(last, 1)).sortBy('day'), [first, last]) ?? []
-  const sets = useLiveQuery(() => db.sets.where('sessionId').anyOf(sessions.map((s) => s.id!)).toArray(), [sessions]) ?? []
+  const sessionIds = sessions.map((s) => s.id!).join(',')
+  const sets = useLiveQuery(() => db.sets.where('sessionId').anyOf(sessionIds.split(',').filter(Boolean).map(Number)).toArray(), [sessionIds]) ?? []
   const setCount = (id?: number) => sets.filter((x) => x.sessionId === id).length
 
   const weekStart = startOfWeek(selected ?? today())

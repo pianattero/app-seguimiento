@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { AppDB, seedIfNeeded } from '../db'
-import { fillWeek, shoppingList, suggestPortions, totals } from '../meals'
+import { deleteCustomRecipe, fillWeek, shoppingList, suggestPortions, totals } from '../meals'
 import { mealSlots, recipeById, recipes } from '../recipes'
 import type { Meal } from '../types'
 
@@ -89,3 +89,20 @@ function addDay(day: string, delta: number) {
   d.setDate(d.getDate() + delta)
   return d.toISOString().slice(0, 10)
 }
+
+describe('recetas propias', () => {
+  it('al borrar una receta propia, sus comidas quedan como comidas libres con sus kcal', async () => {
+    await db.customRecipes.put({
+      id: 'propia-1', name: 'Tarta de prueba', slots: ['cena'], kcal: 400, proteinG: 20, carbsG: 30, fatG: 20, minutes: 30, ingredients: [], steps: [],
+    })
+    const mealId = (await db.meals.add({ day: monday, slot: 'cena', recipeId: 'propia-1', portions: 1.5 })) as number
+    await deleteCustomRecipe('propia-1', db)
+    expect(await db.customRecipes.count()).toBe(0)
+    const meal = await db.meals.get(mealId)
+    expect(meal?.recipeId).toBeUndefined()
+    expect(meal?.customName).toBe('Tarta de prueba')
+    expect(meal?.customKcal).toBe(600)
+    expect(meal?.customProteinG).toBe(30)
+    expect(meal?.portions).toBe(1)
+  })
+})
